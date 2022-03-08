@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import com.example.project.enums.Ability;
+import com.example.project.enums.SkillPoints;
 import com.example.project.enums.Type;
 
 @Entity
@@ -16,26 +17,46 @@ public class Monster {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	protected long id;
 	
 	@Column
-	private String name;
+	protected String name;
 	
 	@Column
-	private int attack;
+	protected int attack;
 	
 	@Column
-	private int health;
+	protected int health;
 	
 	@Column
+	protected String typeStr;
+	
+	@Column
+	protected List<String> abilityStr;
+	
+	protected List<Ability> abilities;
+	
+	@Column
+	protected String description;
+	
 	private Type type;
-	
-	@Column
-	private List<Ability> abilities;
-	
-	@Column
-	private String description;
 
+	private boolean built = false;
+	
+	private int buildPoints;
+	
+	public void  setBuildPoints() {
+		if (built) {
+			buildPoints = ((SkillPoints.ABILITYCOST.getPoints() * abilities.size()) + attack + health - type.getPoints());
+		} else {
+			buildPoints = ((3 * abilities.size()) + attack + health);
+		}
+	}
+	
+	public int getBuildPoints() {
+		setBuildPoints();
+		return buildPoints;
+	}
 	public long getId() {
 		return id;
 	}
@@ -92,30 +113,54 @@ public class Monster {
 		this.description = description;
 	}
 
-	public Monster(long id, String name, int attack, int health, Type type, List<Ability> abilities,
+	public Monster(long id, String name, int attack, int health, String typeStr, List<String> abilityStr,
 			String description) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.attack = attack;
 		this.health = health;
-		this.type = type;
-		this.abilities = abilities;
+		this.typeStr = typeStr;
+		this.abilityStr = abilityStr;
 		this.description = description;
 	}
 
-	public Monster(String name, int attack, int health, Type type, List<Ability> abilities, String description) {
+	public Monster(String name, int attack, int health, String typeStr, List<String> abilityStr, String description) {
 		super();
 		this.name = name;
 		this.attack = attack;
 		this.health = health;
-		this.type = type;
-		this.abilities = abilities;
+		this.typeStr = typeStr;
+		this.abilityStr = abilityStr;
 		this.description = description;
+	}
+
+	public List<String> getAbilityStr() {
+		return abilityStr;
+	}
+
+	public void setAbilityStr(List<String> abilityStr) {
+		this.abilityStr = abilityStr;
 	}
 
 	public Monster() {
 		super();
+	}
+
+	public boolean isBuilt() {
+		return built;
+	}
+
+	public void setBuilt(boolean built) {
+		this.built = built;
+	}
+
+	public String getTypeStr() {
+		return typeStr;
+	}
+
+	public void setTypeStr(String typeStr) {
+		this.typeStr = typeStr;
 	}
 	
 	
