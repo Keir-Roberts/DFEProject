@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.project.enums.Ability;
+import com.example.project.enums.SkillPoints;
 import com.example.project.enums.Type;
+import com.example.project.exceptions.BuildPointException;
 import com.example.project.exceptions.NoAbilityException;
 import com.example.project.exceptions.NoTypeException;
 import com.examle.project.repo.monsterRepo;
@@ -13,38 +15,42 @@ import com.example.project.classes.Monster;
 public class MonsterService {
 
 	private monsterRepo repo;
-	
+
 	public MonsterService(monsterRepo repo) {
 		this.repo = repo;
 	}
 
 	public Monster build(Monster monster) {
-		if(!monster.isBuilt()) {
-		int attack = monster.getAttack();
-		int health = monster.getHealth();
-		List<Ability> abilities = monster.getAbilities();
-		Type type = monster.getType();
 		if (!monster.isBuilt()) {
-			monster.setAttack(type.getAttack(attack));
-			monster.setHealth(type.getDef(health));
-			abilities.add(type.getInnate());
-			monster.setBuilt(true);
-		}
-		return monster;
-		} else return monster;
+			int attack = monster.getAttack();
+			int health = monster.getHealth();
+			List<Ability> abilities = monster.getAbilities();
+			Type type = monster.getType();
+			if (!monster.isBuilt()) {
+				monster.setAttack(type.getAttack(attack));
+				monster.setHealth(type.getDef(health));
+				abilities.add(type.getInnate());
+				monster.setBuilt(true);
+			}
+			convertEnumToStr(monster);
+			return monster;
+		} else
+			return monster;
 	}
-	
+
 	public Monster unbuild(Monster monster) {
 		if (monster.isBuilt()) {
-		monster.setAttack(monster.getAttack() - monster.getType().getBaseATK());
-		monster.setHealth(monster.getHealth() - monster.getType().getBaseDEF());
-		List<Ability> abilities = monster.getAbilities();
-		abilities.remove(monster.getType().getInnate());
-		monster.setAbilities(abilities);
-		return monster;
-	} else return monster;
+			monster.setAttack(monster.getAttack() - monster.getType().getBaseATK());
+			monster.setHealth(monster.getHealth() - monster.getType().getBaseDEF());
+			List<Ability> abilities = monster.getAbilities();
+			abilities.remove(monster.getType().getInnate());
+			monster.setAbilities(abilities);
+			convertEnumToStr(monster);
+			return monster;
+		} else
+			return monster;
 	}
-	
+
 	public Monster AddMonster(Monster monster) {
 		if (monster.isBuilt()) {
 			return this.repo.save(monster);
@@ -57,26 +63,81 @@ public class MonsterService {
 		return this.repo.findAll();
 	}
 
-	public List<Monster> getType(String name) {
+	public List<Monster> getType(String name) throws NoTypeException {
 		List<Monster> output = new ArrayList<Monster>();
 		List<Monster> all = this.repo.findAll();
 		for (Monster monster : all) {
-			if (monster.getType().getType().contains(name))
+			if (monster.getTypeStr().equals(name))
 				output.add(monster);
 		}
+		if (output.size() == 0) {
+			throw new NoTypeException("No monsters found that match the input: '" + name + "'.");
+		}
 		return output;
+	}
+
+	public Monster readID(Long id) {
+		return repo.getById(id);
 	}
 
 	public Monster getID(Long id) throws NoTypeException, NoAbilityException {
 		Monster monster = repo.getById(id);
 		try {
-			convert(monster);
-		} catch(NoTypeException t) {
+			convertStrToEnum(monster);
+		} catch (NoTypeException t) {
 			throw t;
-		} catch(NoAbilityException a) {
+		} catch (NoAbilityException a) {
 			throw a;
 		}
 		return monster;
+	}
+
+	public Monster updateMonAttack(Long id, int change) throws BuildPointException, NoTypeException, NoAbilityException {
+		Monster mon = repo.getById(id);
+		if (mon.getBPLeft() < change) {
+			throw new BuildPointException("This monster has " + mon.getBPLeft() + " build points remaining. The proposed action costs " + change + "build points");
+		}
+		int atk = mon.getAttack();
+		mon.setAttack(atk + change);
+		convertStrToEnum(mon);
+		return repo.save(mon);
+	}
+	
+	public Monster updateMonHealth(Long id, int change) throws BuildPointException, NoTypeException, NoAbilityException {
+		Monster mon = repo.getById(id);
+		if (mon.getBPLeft() < change) {
+			throw new BuildPointException("This monster has " + mon.getBPLeft() + " build points remaining. The proposed action costs " + change + "build points");
+		}
+		int def = mon.getHealth();
+		mon.setHealth(def + change);
+		convertStrToEnum(mon);
+		return repo.save(mon);
+	}
+	
+	public Monster addMonAbility(Long id, String name) throws NoAbilityException, NoTypeException, BuildPointException {
+		Monster mon = repo.getById(id);
+		if (mon.getBPLeft() < SkillPoints.ABILITYCOST.getPoints()) {
+			throw new BuildPointException("This monster has " + mon.getBPLeft() + "'build points remaining, and "
+					+ SkillPoints.ABILITYCOST.getPoints() + " build points are required to add a new Ability.");
+		}
+		Ability.abilityStr(name);
+		List<String> abilities = mon.getAbilityStr();
+		abilities.add(name);
+		mon.setAbilityStr(abilities);
+		convertStrToEnum(mon);
+		return repo.save(mon);
+	}
+
+	public Monster removeMonAbility(Long id, String name) throws NoAbilityException, NoTypeException {
+		Monster mon = repo.getById(id);
+		Ability.abilityStr(name);
+		List<String> abilities = mon.getAbilityStr();
+		abilities.remove(name);
+		mon.setAbilityStr(abilities);
+		convertStrToEnum(mon);
+		mon.setBuildPoints();
+		mon.setBPLeft();
+		return repo.save(mon);
 	}
 
 	public List<Monster> getName(String name) {
@@ -127,28 +188,65 @@ public class MonsterService {
 		return output;
 	}
 
-	public void deleteMon(long id) {
-		repo.delete(repo.getById(id));;
+	public Monster Update(Long id, Monster monster) throws BuildPointException, NoTypeException, NoAbilityException {
+		convertStrToEnum(monster);
+		if (BPCheck(monster));
+		Monster original = readID(id);
+		unbuild(original);
+		original.setName(monster.getName());
+		original.setTypeStr(monster.getTypeStr());
+		original.setAbilityStr(monster.getAbilityStr());
+		original.setAttack(monster.getAttack());
+		original.setHealth(monster.getHealth());
+		original.setDescription(monster.getDescription());
+		original.setTypeStr(monster.getTypeStr());
+		convertStrToEnum(original);
+		build(original);
+		return repo.save(original);
 	}
 
-	public Monster convert(Monster monster) throws NoTypeException, NoAbilityException {
-			try {
-				monster.setType(Type.strType(monster.getTypeStr()));
-			} catch (NoTypeException t) {
-				throw new NoTypeException("Cannot find a type called " + monster.getTypeStr());
+	public Monster deleteMon(long id) {
+		Monster out =repo.getById(id);
+		repo.delete(repo.getById(id));
+		return out;
+	}
+
+	public Monster convertStrToEnum(Monster monster) throws NoTypeException, NoAbilityException {
+		try {
+			monster.setType(Type.strType(monster.getTypeStr()));
+		} catch (NoTypeException t) {
+			throw new NoTypeException("Cannot find a type called " + monster.getTypeStr());
+		}
+		String errorOut = null;
+		try {
+			List<Ability> abilities = new ArrayList<Ability>();
+			for (String s : monster.getAbilityStr()) {
+				errorOut = s;
+				abilities.add(Ability.abilityStr(s));
 			}
-			String errorOut = null;
-			try {
-				List<Ability> abilities = new ArrayList<Ability>();
-				for(String s: monster.getAbilityStr()) {
-					errorOut = s;
-					abilities.add(Ability.abilityStr(s));
-				}
-				monster.setAbilities(abilities);
-				} catch (NoAbilityException t) {
-					throw new NoAbilityException("Cannot find an ability called '" + errorOut);
-				}
-			monster.setBuildPoints();
-			return monster;
+			monster.setAbilities(abilities);
+		} catch (NoAbilityException t) {
+			throw new NoAbilityException("Cannot find an ability called '" + errorOut);
+		}
+		monster.setBuildPoints();
+		return monster;
+	}
+
+	public Monster convertEnumToStr(Monster monster) {
+		List<String> abilityStr = new ArrayList<String>();
+		for (Ability a : monster.getAbilities()) {
+			abilityStr.add(a.getName());
+		}
+		monster.setAbilityStr(abilityStr);
+		monster.setTypeStr(monster.getType().getType());
+		return monster;
+	}
+	public Boolean BPCheck(Monster monster) throws BuildPointException {
+		int bp = monster.getBuildPoints();
+		if (bp > SkillPoints.POINTSMAX.getPoints())
+			throw new BuildPointException("This monster has used a total of " + bp
+					+ " 'build points' which exceeds the maximum of: " + SkillPoints.POINTSMAX.getPoints());
+		else
+			return true;
 	}
 }

@@ -17,27 +17,38 @@ public class Monster {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	protected long id;
+	private long id;
 	
 	@Column
-	protected String name;
+	private String name;
 	
 	@Column
-	protected int attack;
+	private int attack;
 	
 	@Column
-	protected int health;
+	private int health;
 	
 	@Column
-	protected String typeStr;
+	private String typeStr;
 	
 	@Column
-	protected List<String> abilityStr;
+	private List<String> abilityStr;
 	
-	protected List<Ability> abilities;
+	private List<Ability> abilities;
 	
+	private int BPLeft;
+	
+	public int getBPLeft() {
+		setBPLeft();
+		return BPLeft;
+	}
+
+	public void setBPLeft() {
+		BPLeft = SkillPoints.POINTSMAX.getPoints() - this.getBuildPoints();
+	}
+
 	@Column
-	protected String description;
+	private String description;
 	
 	private Type type;
 
@@ -161,6 +172,12 @@ public class Monster {
 
 	public void setTypeStr(String typeStr) {
 		this.typeStr = typeStr;
+	}
+
+	@Override
+	public String toString() {
+		return "Monster ID=" + id + ", name=" + name + ", attack=" + attack + ", health=" + health + ", typeStr="
+				+ typeStr + ", abilityStr=" + abilityStr + "\n";
 	}
 	
 	
