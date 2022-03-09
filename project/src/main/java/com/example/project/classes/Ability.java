@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -11,6 +13,10 @@ import javax.persistence.OneToMany;
 public class Ability {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private long id;
+	
+	@Column
 	private String name;
 	
 	@Column
@@ -43,8 +49,15 @@ public class Ability {
 		this.description = description;
 	}
 
-	public Ability(String name, String description, String InnateTo) {
+	public Ability(String name, String description) {
 		super();
+		this.name = name;
+		this.description = description;
+	}
+
+	public Ability(long id, String name, String description) {
+		super();
+		this.id = id;
 		this.name = name;
 		this.description = description;
 	}
