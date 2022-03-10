@@ -6,11 +6,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.project.classes.Ability;
-import com.example.project.classes.MonAbility;
 import com.example.project.enums.SkillPoints;
 import com.example.project.enums.Type;
 import com.example.project.exceptions.BuildPointException;
 import com.example.project.exceptions.NoAbilityException;
+import com.example.project.exceptions.existingAbilityException;
 import com.example.project.exceptions.NoTypeException;
 import com.example.project.repo.monsterRepo;
 import com.example.project.classes.Monster;
@@ -18,19 +18,17 @@ import com.example.project.classes.Monster;
 @Service
 public class MonsterService {
 
-	private MonAbilityService maService;
-	
+
 	private monsterRepo repo;
-	
+
 	private AbilityService abService;
 
-	public MonsterService(monsterRepo repo, MonAbilityService maService, AbilityService abService) {
+	public MonsterService(monsterRepo repo, AbilityService abService) {
 		this.repo = repo;
-		this.maService = maService;
 		this.abService = abService;
 	}
 
-	public Monster build(Monster monster) throws NoTypeException {
+	public Monster build(Monster monster) throws Exception {
 		if (!monster.isBuilt()) {
 			int attack = monster.getAttack();
 			int health = monster.getHealth();
@@ -40,6 +38,7 @@ public class MonsterService {
 				monster.setAttack(type.getAttack(attack));
 				monster.setHealth(type.getDef(health));
 				monster.setBuilt(true);
+				addMonAbility(monster, abService.findByInnate(monster.getTypeStr()));
 			}
 			convertEnumToStr(monster);
 			return monster;
@@ -47,18 +46,36 @@ public class MonsterService {
 			return monster;
 	}
 
-	public Monster unbuild(Monster monster) throws NoTypeException {
+	private Monster addMonAbility(Monster mon, Ability ability) throws Exception {
+		if (bpLeft(mon) < SkillPoints.ABILITYCOST.getPoints()) {
+			throw new BuildPointException("This monster has " + bpLeft(mon) + "'build points remaining, and "
+					+ SkillPoints.ABILITYCOST.getPoints() + " build points are required to add a new Ability.");
+		}
+		if (mon.getAbilities().contains(ability)) {
+			throw new existingAbilityException(mon.getName() + " has already got ability " + ability.getName());
+		}
+		List<Ability> abilities = mon.getAbilities();
+		abilities.add(ability);
+		mon.setAbilities(abilities);
+		return repo.save(mon);
+		
+	}
+
+	public Monster unbuild(Monster monster) throws NoTypeException, NoAbilityException {
 		if (monster.isBuilt()) {
 			monster.setAttack(monster.getAttack() - monster.getType().getBaseATK());
 			monster.setHealth(monster.getHealth() - monster.getType().getBaseDEF());
 			convertEnumToStr(monster);
+			removeMonAbility(monster, abService.findByInnate(monster.getTypeStr()));
 			monster.setBuilt(false);
 			return monster;
 		} else
 			return monster;
 	}
 
-	public Monster AddMonster(Monster monster) throws NoTypeException {
+	public Monster AddMonster(Monster monster) throws Exception {
+		this.repo.save(monster);
+		convertEnumToStr(monster);
 		if (monster.isBuilt()) {
 			return this.repo.save(monster);
 		} else {
@@ -103,46 +120,67 @@ public class MonsterService {
 		Monster mon = readID(id);
 		int base = mon.getAttack() - mon.getType().getBaseATK();
 		if (bpLeft(mon) < change) {
-			throw new BuildPointException("This monster has " + bpLeft(mon) + " build points remaining. The proposed action costs " + change + "build points");
-		} else if(base + change <= 0) {
-			throw new IndexOutOfBoundsException("This monster has a base attack of: " + base + " and you cannot have an attack less than or equal to 0");
-	}
+			throw new BuildPointException("This monster has " + bpLeft(mon)
+					+ " build points remaining. The proposed action costs " + change + "build points");
+		} else if (base + change <= 0) {
+			throw new IndexOutOfBoundsException("This monster has a base attack of: " + base
+					+ " and you cannot have an attack less than or equal to 0");
+		}
 		int atk = mon.getAttack();
 		mon.setAttack(atk + change);
 		convertStrToEnum(mon);
 		return repo.save(mon);
 	}
-	
-	public Monster updateMonHealth(Long id, int change) throws BuildPointException, NoTypeException, NoAbilityException {
+
+	public Monster updateMonHealth(Long id, int change)
+			throws BuildPointException, NoTypeException, NoAbilityException {
 		Monster mon = readID(id);
 		int base = mon.getHealth() - mon.getType().getBaseDEF();
 		if (bpLeft(mon) < change) {
-			throw new BuildPointException("This monster has " + bpLeft(mon) + " build points remaining. The proposed action costs " + change + "build points");
-		} else if(base + change <= 0) {
-			throw new IndexOutOfBoundsException("This monster has a base health of: " + base + " and you cannot have an attack less than or equal to 0");
-	}
+			throw new BuildPointException("This monster has " + bpLeft(mon)
+					+ " build points remaining. The proposed action costs " + change + "build points");
+		} else if (base + change <= 0) {
+			throw new IndexOutOfBoundsException("This monster has a base health of: " + base
+					+ " and you cannot have an attack less than or equal to 0");
+		}
 		int def = mon.getHealth();
 		mon.setHealth(def + change);
 		convertStrToEnum(mon);
 		return repo.save(mon);
 	}
-	
-	public MonAbility addMonAbility(Long id, String name) throws NoAbilityException, NoTypeException, BuildPointException {
+
+	public Monster addMonAbility(Long id, String name)
+			throws Exception {
 		Monster mon = readID(id);
 		if (bpLeft(mon) < SkillPoints.ABILITYCOST.getPoints()) {
 			throw new BuildPointException("This monster has " + bpLeft(mon) + "'build points remaining, and "
 					+ SkillPoints.ABILITYCOST.getPoints() + " build points are required to add a new Ability.");
 		}
 		Ability ability = abService.findName(name);
-		return maService.addMonAbility(mon, ability);
+		if (mon.getAbilities().contains(ability)) {
+			throw new existingAbilityException(mon.getName() + " has already got ability " + name);
+		}
+		List<Ability> abilities = mon.getAbilities();
+		abilities.add(ability);
+		mon.setAbilities(abilities);
+		return repo.save(mon);
 	}
 
-	public MonAbility removeMonAbility(Long id, String name) throws NoAbilityException, NoTypeException {
+	public Monster removeMonAbility(Long id, String name) throws NoAbilityException, NoTypeException {
 		Monster mon = readID(id);
 		Ability ability = abService.findName(name);
-		return maService.addMonAbility(mon, ability);
+		List<Ability> abilities = mon.getAbilities();
+		abilities.remove(ability);
+		mon.setAbilities(abilities);
+		return repo.save(mon);
 	}
 
+	public Monster removeMonAbility(Monster mon, Ability ability) throws NoAbilityException, NoTypeException {
+		List<Ability> abilities = mon.getAbilities();
+		abilities.remove(ability);
+		mon.setAbilities(abilities);
+		return repo.save(mon);
+	}
 	public List<Monster> getName(String name) {
 		List<Monster> output = new ArrayList<Monster>();
 		List<Monster> all = this.repo.findAll();
@@ -187,13 +225,15 @@ public class MonsterService {
 		String output = "Comparing " + n1 + " and " + n2 + "." + "\n Type: \n      " + n1 + "'s type is "
 				+ m1.getType().getType() + " and " + n2 + "'s type is " + m2.getType().getType() + "."
 				+ "\n\n Attack: \n      " + attack + "\n\n Health: \n      " + health + "\n\n Abilities \n      " + n1
-				+ "'s abilities are: " + maService.getAbilityFromMon(m1) + "\n      " + n2 + "'s abilities are: " + maService.getAbilityFromMon(m2);
+				+ "'s abilities are: " + m1.getAbilities() + "\n      " + n2 + "'s abilities are: "
+				+ m2.getAbilities();
 		return output;
 	}
 
-	public Monster Update(Long id, Monster monster) throws BuildPointException, NoTypeException, NoAbilityException {
+	public Monster Update(Long id, Monster monster) throws Exception {
 		convertStrToEnum(monster);
-		if (BPCheck(monster));
+		if (BPCheck(monster))
+			;
 		Monster original = readID(id);
 		unbuild(original);
 		original.setName(monster.getName());
@@ -210,13 +250,12 @@ public class MonsterService {
 
 	public String deleteMon(long id) throws NoTypeException {
 		Monster out = readID(id);
-		String name = out.getName();	
-		maService.deleteFromMon(out);
+		String name = out.getName();
 		repo.delete(readID(id));
 		return name + " has been deleted";
 	}
 
-	public Monster convertStrToEnum(Monster monster) throws NoTypeException{
+	public Monster convertStrToEnum(Monster monster) throws NoTypeException {
 		try {
 			monster.setType(Type.strType(monster.getTypeStr()));
 		} catch (NoTypeException t) {
@@ -229,6 +268,7 @@ public class MonsterService {
 		monster.setTypeStr(monster.getType().getType());
 		return monster;
 	}
+
 	public Boolean BPCheck(Monster monster) throws BuildPointException {
 		int bp = bpUsed(monster);
 		if (bp > SkillPoints.POINTSMAX.getPoints())
@@ -237,16 +277,16 @@ public class MonsterService {
 		else
 			return true;
 	}
-	
+
 	public int bpUsed(Monster monster) {
-			int abilities = maService.abilityNum(monster.getId());
-			if (monster.isBuilt()) {
-				return (((abilities * SkillPoints.ABILITYCOST.getPoints()) + monster.getAttack() + monster.getHealth() ) - monster.getType().getCost());
+		if (monster.isBuilt()) {
+			return (((monster.getAbilities().size() * SkillPoints.ABILITYCOST.getPoints()) + monster.getAttack() + monster.getHealth())
+					- monster.getType().getCost());
 		} else {
-			return ((abilities * SkillPoints.ABILITYCOST.getPoints()) + monster.getAttack() + monster.getHealth() );
+			return ((monster.getAbilities().size() * SkillPoints.ABILITYCOST.getPoints()) + monster.getAttack() + monster.getHealth());
 		}
 	}
-	
+
 	public int bpLeft(Monster monster) {
 		return (SkillPoints.POINTSMAX.getPoints() - bpUsed(monster));
 	}

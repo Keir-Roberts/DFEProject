@@ -27,7 +27,7 @@ public class MonsterRestController {
 	}
 
 	@PostMapping("/createMon")
-	public Monster build(@RequestBody Monster monster) throws BuildPointException, NoTypeException, NoAbilityException {
+	public Monster build(@RequestBody Monster monster) throws Exception {
 		service.convertStrToEnum(monster);
 		return service.AddMonster(monster);
 	}
@@ -60,7 +60,7 @@ public class MonsterRestController {
 
 	@PutMapping("/updateMon/{id}")
 	public Monster updateMon(@RequestBody Monster monster, @PathVariable("id") long id)
-			throws BuildPointException, NoTypeException, NoAbilityException {
+			throws Exception {
 		return service.Update(id, monster);
 	}
 
@@ -71,13 +71,22 @@ public class MonsterRestController {
 	}
 
 	@PatchMapping("/monChangeAttack/{id}/{change}")
-	public Monster changeAttack(@PathVariable("id") long id, @PathVariable("change") int change)
-			throws Exception {
+	public Monster changeAttack(@PathVariable("id") long id, @PathVariable("change") int change) throws Exception {
 		return service.updateMonAttack(id, change);
 	}
-	
+
 	@DeleteMapping("/monDelete/{id}")
 	public String deleteMon(@PathVariable("id") long id) throws NoTypeException {
 		return service.deleteMon(id);
+	}
+
+	@PostMapping("/addMonAbility/{id}/{name}")
+	public Monster addMA(@PathVariable("id") long id, @PathVariable("name") String name) throws Exception {
+		return service.addMonAbility(id, name);
+	}
+	
+	@DeleteMapping("/removeMonAbility/{id}/{name}")
+	public Monster deleteMA(@PathVariable("id") long id, @PathVariable("name") String name) throws Exception {
+		return service.removeMonAbility(id, name);
 	}
 }

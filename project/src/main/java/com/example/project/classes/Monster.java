@@ -1,14 +1,9 @@
 package com.example.project.classes;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 import com.example.project.enums.Type;
 
@@ -31,8 +26,9 @@ public class Monster {
 	@Column
 	private String typeStr;
 	
-	@OneToMany(mappedBy="monster")
-	private List<MonAbility> MonAbility;
+	@ManyToMany
+	@JoinTable(name = "mon_ability", joinColumns = @JoinColumn(name = "monster_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "ability_id", referencedColumnName = "id"))
+	private List<Ability> Abilities = new ArrayList<Ability>();
 	
 	@Column
 	private String description;
@@ -82,12 +78,12 @@ public class Monster {
 		this.type = type;
 	}
 
-	public List<MonAbility> getMonAbility() {
-		return MonAbility;
+	public List<Ability> getAbilities() {
+		return Abilities;
 	}
 
-	public void setMonAbility(List<MonAbility> monAbility) {
-		MonAbility = monAbility;
+	public void setAbilities(List<Ability> abilities) {
+		Abilities = abilities;
 	}
 
 	public String getDescription() {
@@ -138,7 +134,7 @@ public class Monster {
 
 	@Override
 	public String toString() {
-		return "Monster ID=" + id + ", name=" + name + ", attack=" + attack + ", health=" + health + ", typeStr="
+		return "Monster ID = " + id + ", Name = " + name + ", Attack = " + attack + ", Health = " + health + ", Type ="
 				+ typeStr + "\n";
 	}
 	

@@ -19,10 +19,7 @@ public class AbilityService {
 	
 	public Ability findByInnate(String type) throws NoTypeException {
 		Type t = Type.strType(type);
-		for(Ability a: abRepo.findAll()) {
-			if(t.getInnate().toLowerCase().equals(a)) return a;
-		}
-		return null;
+		return abRepo.findById(t.getInnate()).get();
 	}
 	
 	public Ability findName(String name) throws NoAbilityException {

@@ -7,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 
 @Entity
 public class Ability {
@@ -22,15 +22,12 @@ public class Ability {
 	@Column
 	private String description;
 
-	@OneToMany(mappedBy="ability")
-	private List<MonAbility> MonAbility;
-	
-	public List<MonAbility> getMonAbility() {
-		return MonAbility;
+	public long getId() {
+		return id;
 	}
 
-	public void setMonAbility(List<MonAbility> monAbility) {
-		MonAbility = monAbility;
+	public void setId(long id) {
+		this.id = id;
 	}
 
 	public void setName(String name) {

@@ -12,4 +12,5 @@ INSERT IGNORE INTO `ability` (id, name, description) VALUES
 	(11, 'pact', 'gain attack and defense equal to half of the attack and health of the next monster in this party but the next monster takes 2 damage and has 1 less attack'),
 	(12, 'reflect', 'when this monster takes damage, deal damage to the opponent equal to half the damage taken rounded up'),
 	(13, 'ruthless', 'this monster deals 3x damage to those it is strong against instead of 2x. If the opponent has defensive, they cancel out'),
-	(14, 'defensive', 'this monster does not take extra damage from enemies that are strong against it. if the opponent has ruthless, they cancel out');
+	(14, 'defensive', 'this monster does not take extra damage from enemies that are strong against it. if the opponent has ruthless, they cancel out'),
+	(15, 'retaliate', 'this monster deals 1 extra damage per piece of health missing');
