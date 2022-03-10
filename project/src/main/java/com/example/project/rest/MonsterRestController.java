@@ -12,23 +12,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.project.classes.Monster;
-import com.example.project.exceptions.BuildPointException;
-import com.example.project.exceptions.NoAbilityException;
 import com.example.project.exceptions.NoTypeException;
 import com.example.project.service.MonsterService;
+import com.example.project.service.ValidateService;
 
 @RestController
 public class MonsterRestController {
 
 	public MonsterService service;
+	
+	public ValidateService valid;
 
-	public MonsterRestController(MonsterService service) {
+	public MonsterRestController(MonsterService service, ValidateService valid) {
 		this.service = service;
+		this.valid = valid;
 	}
 
 	@PostMapping("/createMon")
 	public Monster build(@RequestBody Monster monster) throws Exception {
-		service.convertStrToEnum(monster);
+		valid.convertStrToEnum(monster);
 		return service.AddMonster(monster);
 	}
 
@@ -66,7 +68,7 @@ public class MonsterRestController {
 
 	@PatchMapping("/monChangeHealth/{id}/{change}")
 	public Monster changeHealth(@PathVariable("id") long id, @PathVariable("change") int change)
-			throws BuildPointException, NoTypeException, NoAbilityException {
+			throws Exception {
 		return service.updateMonHealth(id, change);
 	}
 
