@@ -24,7 +24,7 @@ public class Monster {
 	private int health;
 	
 	@Column
-	private String typeStr;
+	private String type;
 	
 	@ManyToMany
 	@JoinTable(name = "mon_ability", joinColumns = @JoinColumn(name = "monster_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "ability_id", referencedColumnName = "id"))
@@ -34,7 +34,7 @@ public class Monster {
 	private String description;
 	
 	@Transient
-	private Type type;
+	private Type typeEnum;
 
 	private boolean built = false;
 	
@@ -70,12 +70,12 @@ public class Monster {
 		this.health = health;
 	}
 
-	public Type getType() {
-		return type;
+	public Type getTypeEnum() {
+		return typeEnum;
 	}
 
-	public void setType(Type type) {
-		this.type = type;
+	public void setTypeEnum(Type type) {
+		this.typeEnum = type;
 	}
 
 	public List<Ability> getAbilities() {
@@ -94,47 +94,47 @@ public class Monster {
 		this.description = description;
 	}
 
-	public Monster(long id, String name, int attack, int health, String typeStr, String description, boolean built) {
+	public Monster(long id, String name, int attack, int health, String type, String description, boolean built) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.attack = attack;
 		this.health = health;
-		this.typeStr = typeStr;
+		this.type = type;
 		this.description = description;
 		this.built = built;
 	}
 
-	public Monster(long id, String name, int attack, int health, String typeStr, String description) {
+	public Monster(long id, String name, int attack, int health, String type, String description) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.attack = attack;
 		this.health = health;
-		this.typeStr = typeStr;
+		this.type = type;
 		this.description = description;
 	}
 
-	public Monster(long id, String name, int attack, int health, String typeStr, List<Ability> abilities,
-			String description, Type type, boolean built) {
+	public Monster(long id, String name, int attack, int health, String type, List<Ability> abilities,
+			String description, Type typeEnum, boolean built) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.attack = attack;
 		this.health = health;
-		this.typeStr = typeStr;
+		this.typeEnum = typeEnum;
 		Abilities = abilities;
 		this.description = description;
 		this.type = type;
 		this.built = built;
 	}
 
-	public Monster(String name, int attack, int health, String typeStr, String description) {
+	public Monster(String name, int attack, int health, String type, String description) {
 		super();
 		this.name = name;
 		this.attack = attack;
 		this.health = health;
-		this.typeStr = typeStr;
+		this.type = type;
 		this.description = description;
 	}
 	public Monster() {
@@ -149,18 +149,18 @@ public class Monster {
 		this.built = built;
 	}
 
-	public String getTypeStr() {
-		return typeStr;
+	public String getType() {
+		return type;
 	}
 
-	public void setTypeStr(String typeStr) {
-		this.typeStr = typeStr;
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	@Override
 	public String toString() {
 		return "Monster ID = " + id + ", Name = " + name + ", Attack = " + attack + ", Health = " + health + ", Type ="
-				+ typeStr + "\n";
+				+ type + "\n";
 	}
 	
 	

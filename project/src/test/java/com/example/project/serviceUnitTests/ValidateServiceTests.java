@@ -51,7 +51,7 @@ public class ValidateServiceTests {
 		} catch (NoTypeException t) {
 			fail("Should recognise type");
 		}
-		assertEquals("Should return type.UNDEAD", mon.getType(), Type.UNDEAD);
+		assertEquals("Should return type.UNDEAD", mon.getTypeEnum(), Type.UNDEAD);
 	}
 
 	@Test
@@ -65,9 +65,9 @@ public class ValidateServiceTests {
 	@Test
 	public void testConvertEnumToStr() {
 		Monster mon = new Monster();
-		mon.setType(Type.FAE);
+		mon.setTypeEnum(Type.FAE);
 		valid.convertEnumToStr(mon);
-		assertEquals("Expected 'Fae' but recieved " + mon.getTypeStr(), "Fae", mon.getTypeStr());
+		assertEquals("Expected 'Fae' but recieved " + mon.getType(), "Fae", mon.getType());
 	}
 
 	@Test
@@ -103,7 +103,7 @@ public class ValidateServiceTests {
 		List<Ability> abilities = new ArrayList<Ability>();
 		abilities.add(new Ability());
 		abilities.add(new Ability());
-		when(mockMon.getType()).thenReturn(Type.BEAST);
+		when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
 		when(mockMon.isBuilt()).thenReturn(true);
 		when((mockMon.getAbilities())).thenReturn(abilities);
 		when(mockMon.getHealth()).thenReturn(5);
@@ -113,7 +113,7 @@ public class ValidateServiceTests {
 		verify(mockMon, times(1)).getAbilities();
 		verify(mockMon, times(1)).getHealth();
 		verify(mockMon, times(1)).getAttack();
-		verify(mockMon, times(1)).getType();
+		verify(mockMon, times(1)).getTypeEnum();
 	}
 
 	@Test
@@ -146,7 +146,7 @@ public class ValidateServiceTests {
 	public void testValStatChangeAtkBPE() {
 		Monster mockMon = mock(Monster.class);
 		ValidateService spyValid = Mockito.spy(valid);
-		when(mockMon.getType()).thenReturn(Type.BEAST);
+		when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
 		when(mockMon.getAttack()).thenReturn(6);
 		Mockito.doReturn(2).when(spyValid).bpLeft(mockMon);
 		Throwable exception = assertThrows(BuildPointException.class,
@@ -160,7 +160,7 @@ public class ValidateServiceTests {
 	public void testValStatChangeDefBPE() {
 		Monster mockMon = mock(Monster.class);
 		ValidateService spyValid = Mockito.spy(valid);
-		when(mockMon.getType()).thenReturn(Type.BEAST);
+		when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
 		when(mockMon.getHealth()).thenReturn(6);
 		Mockito.doReturn(2).when(spyValid).bpLeft(mockMon);
 		Throwable exception = assertThrows(BuildPointException.class,
@@ -174,7 +174,7 @@ public class ValidateServiceTests {
 	public void testValStatChangeAtkIOB() {
 		Monster mockMon = mock(Monster.class);
 		ValidateService spyValid = Mockito.spy(valid);
-		when(mockMon.getType()).thenReturn(Type.BEAST);
+		when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
 		when(mockMon.getAttack()).thenReturn(4);
 		Mockito.doReturn(5).when(spyValid).bpLeft(mockMon);
 		Throwable exception = assertThrows(IndexOutOfBoundsException.class,
@@ -188,7 +188,7 @@ public class ValidateServiceTests {
 public void testValStatChangeDefIOB() {
 	Monster mockMon = mock(Monster.class);
 	ValidateService spyValid = Mockito.spy(valid);
-	when(mockMon.getType()).thenReturn(Type.BEAST);
+	when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
 	when(mockMon.getHealth()).thenReturn(5);
 	Mockito.doReturn(5).when(spyValid).bpLeft(mockMon);
 	Throwable exception = assertThrows(IndexOutOfBoundsException.class,
@@ -244,7 +244,7 @@ public void testValidAbilityRemoveInnate() {
 	List<Ability> abilities = new ArrayList<Ability>();
 	abilities.add(mockAbility);
 	when(mockMon.getAbilities()).thenReturn(abilities);
-	when(mockMon.getType()).thenReturn(Type.FAE);
+	when(mockMon.getTypeEnum()).thenReturn(Type.FAE);
 	when(mockAbility.getId()).thenReturn(4L);
 	Throwable exception = assertThrows(Exception.class, () -> spyValid.validAbilityRemove(mockMon, mockAbility));
 	assertEquals("Messages should be the same", "Cannot remove innate abilities", exception.getMessage());

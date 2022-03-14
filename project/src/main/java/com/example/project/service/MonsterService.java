@@ -3,6 +3,7 @@ package com.example.project.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.example.project.classes.Ability;
@@ -10,6 +11,7 @@ import com.example.project.enums.Type;
 import com.example.project.exceptions.NoTypeException;
 import com.example.project.repo.monsterRepo;
 import com.example.project.classes.Monster;
+import com.example.project.dto.MonsterDTO;
 
 @Service
 public class MonsterService {
@@ -20,23 +22,37 @@ public class MonsterService {
 
 	private AbilityService abService;
 
-	public MonsterService(monsterRepo repo, AbilityService abService, ValidateService valid) {
+	private ModelMapper mapper;
+	
+	public MonsterService(monsterRepo repo, AbilityService abService, ValidateService valid, ModelMapper mapper) {
 		this.valid = valid;
 		this.repo = repo;
 		this.abService = abService;
+		this.mapper = mapper;
 	}
 
+	public MonsterDTO mapToDTO(Monster mon) {
+        return this.mapper.map(mon, MonsterDTO.class);
+    }
+	
+	public List<MonsterDTO> mapListDTO(List<Monster> list) {
+		List<MonsterDTO> out = new ArrayList<MonsterDTO>();
+		for(Monster m : list) {
+			out.add(mapToDTO(m));
+	}
+	return out;	
+	}
 	public Monster build(Monster monster) throws Exception {
 		if (!monster.isBuilt()) {
 			int attack = monster.getAttack();
 			int health = monster.getHealth();
-			String typeStr = monster.getTypeStr();
-			Type type = Type.strType(typeStr);
-			monster.setType(type);
-			monster.setAttack(type.getAttack(attack));
-			monster.setHealth(type.getDef(health));
+			String type = monster.getType();
+			Type typeEnum = Type.strType(type);
+			monster.setTypeEnum(typeEnum);
+			monster.setAttack(typeEnum.getAttack(attack));
+			monster.setHealth(typeEnum.getDef(health));
 			monster.setBuilt(true);
-			addMonAbility(monster, abService.findByInnate(monster.getTypeStr()));
+			addMonAbility(monster, abService.findByInnate(monster.getType()));
 			return monster;
 		} else
 			return monster;
@@ -53,10 +69,10 @@ public class MonsterService {
 
 	public Monster unbuild(Monster monster) throws Exception {
 		if (monster.isBuilt()) {
-			monster.setAttack(monster.getAttack() - monster.getType().getBaseATK());
-			monster.setHealth(monster.getHealth() - monster.getType().getBaseDEF());
-			monster.setTypeStr(monster.getType().getType());
-			removeMonAbility(monster, abService.findByInnate(monster.getTypeStr()));
+			monster.setAttack(monster.getAttack() - monster.getTypeEnum().getBaseATK());
+			monster.setHealth(monster.getHealth() - monster.getTypeEnum().getBaseDEF());
+			monster.setType(monster.getTypeEnum().getType());
+			removeMonAbility(monster, abService.findByInnate(monster.getType()));
 			monster.setBuilt(false);
 			return monster;
 		} else
@@ -65,8 +81,9 @@ public class MonsterService {
 
 	public Monster AddMonster(Monster monster) throws Exception {
 		this.repo.save(monster);
-		monster.setTypeStr(monster.getType().getType());
+		monster.setType(monster.getTypeEnum().getType());
 		if (monster.isBuilt()) {
+			valid.convertStrToEnum(monster);
 			return this.repo.save(monster);
 		} else {
 			monster = build(monster);
@@ -82,7 +99,7 @@ public class MonsterService {
 		List<Monster> output = new ArrayList<Monster>();
 		List<Monster> all = this.repo.findAll();
 		for (Monster monster : all) {
-			if (monster.getTypeStr().toLowerCase().equals(name.toLowerCase()))
+			if (monster.getType().toLowerCase().equals(name.toLowerCase()))
 				output.add(monster);
 		}
 		if (output.size() == 0) {
@@ -99,7 +116,7 @@ public class MonsterService {
 	public Monster getID(Long id) throws Exception {
 		Monster monster = readID(id);
 		try {
-			monster.setType(Type.strType(monster.getTypeStr()));
+			monster.setTypeEnum(Type.strType(monster.getType()));
 		} catch (NoTypeException t) {
 			throw t;
 		}
@@ -111,7 +128,7 @@ public class MonsterService {
 		valid.valStatChange("attack", mon, change);
 		int atk = mon.getAttack();
 		mon.setAttack(atk + change);
-		mon.setType(Type.strType(mon.getTypeStr()));
+		mon.setTypeEnum(Type.strType(mon.getType()));
 		return repo.save(mon);
 	}
 
@@ -120,7 +137,7 @@ public class MonsterService {
 		valid.valStatChange("health", mon, change);
 		int def = mon.getHealth();
 		mon.setHealth(def + change);
-		mon.setType(Type.strType(mon.getTypeStr()));
+		mon.setTypeEnum(Type.strType(mon.getType()));
 		return repo.save(mon);
 	}
 
@@ -146,7 +163,7 @@ public class MonsterService {
 
 	public Monster removeMonAbility(Monster mon, Ability ability) throws Exception {
 		List<Ability> abilities = mon.getAbilities();
-		if (mon.getType().getInnate() == ability.getId()) {
+		if (mon.getTypeEnum().getInnate() == ability.getId()) {
 			throw new Exception("Cannot remove innate abilities");
 		}
 		abilities.remove(ability);
@@ -192,24 +209,24 @@ public class MonsterService {
 					+ " points larger than " + n1 + "'s attack of " + m1.getAttack() + ".";
 		}
 		String output = "Comparing " + n1 + " and " + n2 + "." + "\n Type: \n      " + n1 + "'s type is "
-				+ m1.getType().getType() + " and " + n2 + "'s type is " + m2.getType().getType() + "."
+				+ m1.getTypeEnum().getType() + " and " + n2 + "'s type is " + m2.getTypeEnum().getType() + "."
 				+ "\n\n Attack: \n      " + attack + "\n\n Health: \n      " + health + "\n\n Abilities \n      " + n1
 				+ "'s abilities are: " + m1.getAbilities() + "\n      " + n2 + "'s abilities are: " + m2.getAbilities();
 		return output;
 	}
 
 	public Monster Update(Long id, Monster monster) throws Exception {
-		monster.setType(Type.strType(monster.getTypeStr()));
+		monster.setTypeEnum(Type.strType(monster.getType()));
 		if (valid.BPCheck(monster));
 		Monster original = readID(id);
 		unbuild(original);
 		original.setName(monster.getName());
-		original.setTypeStr(monster.getTypeStr());
+		original.setType(monster.getType());
 		original.setAttack(monster.getAttack());
 		original.setHealth(monster.getHealth());
 		original.setDescription(monster.getDescription());
-		original.setTypeStr(monster.getTypeStr());
-		original.setType(Type.strType(original.getTypeStr()));
+		original.setType(monster.getType());
+		original.setTypeEnum(Type.strType(original.getType()));
 		original.setBuilt(monster.isBuilt());
 		build(original);
 		return repo.save(original);

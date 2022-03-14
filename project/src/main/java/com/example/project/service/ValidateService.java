@@ -16,16 +16,16 @@ public class ValidateService {
 	public Monster convertStrToEnum(Monster monster) throws NoTypeException {
 		Type type = null;
 		try {
-			type = Type.strType(monster.getTypeStr());
+			type = Type.strType(monster.getType());
 		} catch (NoTypeException t) {
-			throw new NoTypeException("Cannot find a type called " + monster.getTypeStr());
+			throw new NoTypeException("Cannot find a type called " + monster.getType());
 		}
-		monster.setType(type);
+		monster.setTypeEnum(type);
 		return monster;
 	}
 
 	public Monster convertEnumToStr(Monster monster) {
-		monster.setTypeStr(monster.getType().getType());
+		monster.setType(monster.getTypeEnum().getType());
 		return monster;
 	}
 
@@ -41,7 +41,7 @@ public class ValidateService {
 	public int bpUsed(Monster monster) {
 		if (monster.isBuilt()) {
 			return (((monster.getAbilities().size() * SkillPoints.ABILITYCOST.getPoints()) + monster.getAttack()
-					+ monster.getHealth()) - monster.getType().getCost());
+					+ monster.getHealth()) - monster.getTypeEnum().getCost());
 		} else {
 			return ((monster.getAbilities().size() * SkillPoints.ABILITYCOST.getPoints()) + monster.getAttack()
 					+ monster.getHealth());
@@ -55,9 +55,9 @@ public class ValidateService {
 	public void valStatChange(String stat, Monster mon, int change) throws Exception {
 		int base = 0;
 		if (stat.equals("attack")) {
-			base = (mon.getAttack() - mon.getType().getBaseATK());
+			base = (mon.getAttack() - mon.getTypeEnum().getBaseATK());
 		} else if (stat.equals("health")) {
-			base = (mon.getHealth() - mon.getType().getBaseDEF());
+			base = (mon.getHealth() - mon.getTypeEnum().getBaseDEF());
 		}
 		if (bpLeft(mon) < change) {
 			throw new BuildPointException("This monster has " + bpLeft(mon)
@@ -82,7 +82,7 @@ public class ValidateService {
 		if (!(mon.getAbilities().contains(ability))) {
 			throw new NoAbilityException("This monster does not have " + ability.getName());
 		}
-		if (mon.getType().getInnate() == ability.getId()) {
+		if (mon.getTypeEnum().getInnate() == ability.getId()) {
 			throw new Exception("Cannot remove innate abilities");
 		}
 	}
