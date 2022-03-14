@@ -3,64 +3,78 @@ package com.example.project.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import com.example.project.classes.Ability;
 import com.example.project.enums.Type;
-import com.example.project.exceptions.NoAbilityException;
 import com.example.project.exceptions.NoTypeException;
 import com.example.project.repo.monsterRepo;
 import com.example.project.classes.Monster;
+import com.example.project.dto.MonsterDTO;
 
 @Service
 public class MonsterService {
 
-
 	private monsterRepo repo;
-	
+
 	private ValidateService valid;
 
 	private AbilityService abService;
 
-	public MonsterService(monsterRepo repo, AbilityService abService, ValidateService valid) {
+	private ModelMapper mapper;
+	
+	public MonsterService(monsterRepo repo, AbilityService abService, ValidateService valid, ModelMapper mapper) {
 		this.valid = valid;
 		this.repo = repo;
 		this.abService = abService;
+		this.mapper = mapper;
 	}
 
+	public MonsterDTO mapToDTO(Monster mon) {
+        return this.mapper.map(mon, MonsterDTO.class);
+    }
+	
+	public List<MonsterDTO> mapListDTO(List<Monster> list) {
+		List<MonsterDTO> out = new ArrayList<MonsterDTO>();
+		for(Monster m : list) {
+			out.add(mapToDTO(m));
+	}
+	return out;	
+	}
 	public Monster build(Monster monster) throws Exception {
 		if (!monster.isBuilt()) {
 			int attack = monster.getAttack();
 			int health = monster.getHealth();
-			String typeStr = monster.getTypeStr();
-			Type type = Type.strType(typeStr);
-			if (!monster.isBuilt()) {
-				monster.setAttack(type.getAttack(attack));
-				monster.setHealth(type.getDef(health));
-				monster.setBuilt(true);
-				addMonAbility(monster, abService.findByInnate(monster.getTypeStr()));
-			}
-			valid.convertEnumToStr(monster);
+			String type = monster.getType();
+			Type typeEnum = Type.strType(type);
+			monster.setTypeEnum(typeEnum);
+			monster.setAttack(typeEnum.getAttack(attack));
+			monster.setHealth(typeEnum.getDef(health));
+			monster.setBuilt(true);
+			addMonAbility(monster, abService.findByInnate(monster.getType()));
 			return monster;
 		} else
 			return monster;
 	}
 
-	private Monster addMonAbility(Monster mon, Ability ability) throws Exception {
+	public Monster addMonAbility(Monster mon, Ability ability) throws Exception {
 		valid.validAbilityAdd(mon, ability);
 		List<Ability> abilities = mon.getAbilities();
 		abilities.add(ability);
 		mon.setAbilities(abilities);
 		return repo.save(mon);
-		
+
 	}
 
 	public Monster unbuild(Monster monster) throws Exception {
 		if (monster.isBuilt()) {
-			monster.setAttack(monster.getAttack() - monster.getType().getBaseATK());
-			monster.setHealth(monster.getHealth() - monster.getType().getBaseDEF());
-			valid.convertEnumToStr(monster);
-			removeMonAbility(monster, abService.findByInnate(monster.getTypeStr()));
+			String type = monster.getType();
+			monster.setAttack(monster.getAttack() - monster.getTypeEnum().getBaseATK());
+			monster.setHealth(monster.getHealth() - monster.getTypeEnum().getBaseDEF());
+			monster.setTypeEnum(Type.NULL);
+			removeMonAbility(monster, abService.findByInnate(type));
+			monster.setTypeEnum(Type.strType(type));
 			monster.setBuilt(false);
 			return monster;
 		} else
@@ -69,11 +83,13 @@ public class MonsterService {
 
 	public Monster AddMonster(Monster monster) throws Exception {
 		this.repo.save(monster);
-		valid.convertEnumToStr(monster);
+		monster.setType(monster.getTypeEnum().getType());
 		if (monster.isBuilt()) {
+			valid.convertStrToEnum(monster);
 			return this.repo.save(monster);
 		} else {
-			return this.repo.save(build(monster));
+			monster = build(monster);
+			return this.repo.save(monster);
 		}
 	}
 
@@ -85,7 +101,7 @@ public class MonsterService {
 		List<Monster> output = new ArrayList<Monster>();
 		List<Monster> all = this.repo.findAll();
 		for (Monster monster : all) {
-			if (monster.getTypeStr().toLowerCase().equals(name.toLowerCase()))
+			if (monster.getType().toLowerCase().equals(name.toLowerCase()))
 				output.add(monster);
 		}
 		if (output.size() == 0) {
@@ -94,16 +110,15 @@ public class MonsterService {
 		return output;
 	}
 
-	public Monster readID(Long id) throws NoTypeException {
+	public Monster readID(Long id) throws Exception {
 		Monster mon = repo.findById(id).get();
-		mon.setType(Type.strType(mon.getTypeStr()));
 		return mon;
 	}
 
-	public Monster getID(Long id) throws NoTypeException, NoAbilityException {
+	public Monster getID(Long id) throws Exception {
 		Monster monster = readID(id);
 		try {
-			valid.convertStrToEnum(monster);
+			monster.setTypeEnum(Type.strType(monster.getType()));
 		} catch (NoTypeException t) {
 			throw t;
 		}
@@ -111,29 +126,27 @@ public class MonsterService {
 	}
 
 	public Monster updateMonAttack(Long id, int change) throws Exception {
-		Monster mon = readID(id);
+		Monster mon = getID(id);
 		valid.valStatChange("attack", mon, change);
 		int atk = mon.getAttack();
 		mon.setAttack(atk + change);
-		valid.convertStrToEnum(mon);
+		mon.setTypeEnum(Type.strType(mon.getType()));
 		return repo.save(mon);
 	}
 
-	public Monster updateMonHealth(Long id, int change)
-			throws Exception {
-		Monster mon = readID(id);
-		valid.convertStrToEnum(mon);
+	public Monster updateMonHealth(Long id, int change) throws Exception {
+		Monster mon = getID(id);
 		valid.valStatChange("health", mon, change);
 		int def = mon.getHealth();
 		mon.setHealth(def + change);
+		mon.setTypeEnum(Type.strType(mon.getType()));
 		return repo.save(mon);
 	}
 
-	public Monster addMonAbility(Long id, String name)
-			throws Exception {
-		Monster mon = readID(id);
+	public Monster addMonAbility(Long id, String name) throws Exception {
+		Monster mon = getID(id);
 		Ability ability = abService.findName(name);
-		valid.validAbilityRemove(mon, ability);
+		valid.validAbilityAdd(mon, ability);
 		List<Ability> abilities = mon.getAbilities();
 		abilities.add(ability);
 		mon.setAbilities(abilities);
@@ -141,12 +154,10 @@ public class MonsterService {
 	}
 
 	public Monster removeMonAbility(Long id, String name) throws Exception {
-		Monster mon = readID(id);
+		Monster mon = getID(id);
 		Ability ability = abService.findName(name);
+		valid.validAbilityRemove(mon, ability);
 		List<Ability> abilities = mon.getAbilities();
-		if (mon.getType().getInnate() == ability.getId()) {
-			throw new Exception("Cannot remove innate abilities");
-		}
 		abilities.remove(ability);
 		mon.setAbilities(abilities);
 		return repo.save(mon);
@@ -154,31 +165,28 @@ public class MonsterService {
 
 	public Monster removeMonAbility(Monster mon, Ability ability) throws Exception {
 		List<Ability> abilities = mon.getAbilities();
-		if (mon.getType().getInnate() == ability.getId()) {
+		if (mon.getTypeEnum().getInnate() == ability.getId()) {
 			throw new Exception("Cannot remove innate abilities");
 		}
 		abilities.remove(ability);
 		mon.setAbilities(abilities);
 		return repo.save(mon);
 	}
+
 	public List<Monster> getName(String name) {
 		List<Monster> output = new ArrayList<Monster>();
 		List<Monster> all = this.repo.findAll();
 		for (Monster monster : all) {
-			if (monster.getType().getType().contains(name))
+			if (monster.getName().contains(name))
 				output.add(monster);
 		}
 		return output;
 	}
 
-	public String compare(Long id1, Long id2) throws NoTypeException {
-		Monster m1 = this.readID(id1);
-		if (m1 == null)
-			return "Error: Cannot find a monster with ID: " + id1;
+	public String compare(Long id1, Long id2) throws Exception {
+		Monster m1 = this.getID(id1);
 		String n1 = m1.getName();
-		Monster m2 = this.readID(id2);
-		if (m2 == null)
-			return "Error: Cannot find a monster with ID: " + id2;
+		Monster m2 = this.getID(id2);
 		String n2 = m2.getName();
 		int defDif = m1.getHealth() - m2.getHealth();
 		String health;
@@ -203,32 +211,30 @@ public class MonsterService {
 					+ " points larger than " + n1 + "'s attack of " + m1.getAttack() + ".";
 		}
 		String output = "Comparing " + n1 + " and " + n2 + "." + "\n Type: \n      " + n1 + "'s type is "
-				+ m1.getType().getType() + " and " + n2 + "'s type is " + m2.getType().getType() + "."
+				+ m1.getTypeEnum().getType() + " and " + n2 + "'s type is " + m2.getTypeEnum().getType() + "."
 				+ "\n\n Attack: \n      " + attack + "\n\n Health: \n      " + health + "\n\n Abilities \n      " + n1
-				+ "'s abilities are: " + m1.getAbilities() + "\n      " + n2 + "'s abilities are: "
-				+ m2.getAbilities();
+				+ "'s abilities are: " + m1.getAbilities() + "\n      " + n2 + "'s abilities are: " + m2.getAbilities();
 		return output;
 	}
 
 	public Monster Update(Long id, Monster monster) throws Exception {
-		valid.convertStrToEnum(monster);
-		if (valid.BPCheck(monster))
-			;
-		Monster original = readID(id);
+		monster.setTypeEnum(Type.strType(monster.getType()));
+		if (valid.BPCheck(monster));
+		Monster original = getID(id);
 		unbuild(original);
 		original.setName(monster.getName());
-		original.setTypeStr(monster.getTypeStr());
+		original.setType(monster.getType());
 		original.setAttack(monster.getAttack());
 		original.setHealth(monster.getHealth());
 		original.setDescription(monster.getDescription());
-		original.setTypeStr(monster.getTypeStr());
-		valid.convertStrToEnum(original);
+		original.setType(monster.getType());
+		original.setTypeEnum(Type.strType(original.getType()));
 		original.setBuilt(monster.isBuilt());
 		build(original);
 		return repo.save(original);
 	}
 
-	public String deleteMon(long id) throws NoTypeException {
+	public String deleteMon(long id) throws Exception {
 		Monster out = readID(id);
 		String name = out.getName();
 		repo.delete(readID(id));

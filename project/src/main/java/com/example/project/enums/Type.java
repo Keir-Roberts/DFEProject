@@ -1,7 +1,7 @@
 package com.example.project.enums;
 import com.example.project.exceptions.NoTypeException;
 public enum Type {
-	ABOMINATION("Abomination", 2, 5, 15, 10), BEAST("Beast", 3, 4, 6, 10), CELESTIAL("Celestial", 4, 3, 3, 10), CONSTRUCT("Construct", 2, 5, 1, 10),
+	NULL("", 0, 0, 0, 0), ABOMINATION("Abomination", 2, 5, 15, 10), BEAST("Beast", 3, 4, 6, 10), CELESTIAL("Celestial", 4, 3, 3, 10), CONSTRUCT("Construct", 2, 5, 1, 10),
 	DEMON("Demon", 5, 2, 5, 10), DRAGON("Dragon", 5, 2, 2, 10), ELEMENTAL("Elemental", 6, 1, 12, 10), FAE("Fae", 4, 3, 4, 10),
 	NATURE("Nature", 3, 4, 7, 10), UNDEAD("Undead", 1, 6, 8, 10);
 
@@ -55,6 +55,6 @@ public enum Type {
 	}
 	
 	public int getCost() {
-		return (baseATK + baseDEF + SkillPoints.ABILITYCOST.getPoints());
+		return (getBaseATK() + getBaseDEF() + SkillPoints.ABILITYCOST.getPoints());
 	}
 }

@@ -11,10 +11,6 @@ public class existingAbilityException extends Exception{
 	 */
 	private static final long serialVersionUID = 2034682142253726011L;
 
-	public existingAbilityException() {
-		super();
-	}
-
 	public existingAbilityException(String message) {
 		super(message);
 	}
