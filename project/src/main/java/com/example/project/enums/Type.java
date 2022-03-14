@@ -55,6 +55,6 @@ public enum Type {
 	}
 	
 	public int getCost() {
-		return (baseATK + baseDEF + SkillPoints.ABILITYCOST.getPoints());
+		return (getBaseATK() + getBaseDEF() + SkillPoints.ABILITYCOST.getPoints());
 	}
 }

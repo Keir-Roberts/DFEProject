@@ -13,19 +13,22 @@ public class AbilityService {
 
 	abilityRepo abRepo;
 	
-	AbilityService(abilityRepo abRepo) {
+	public AbilityService(abilityRepo abRepo) {
 		this.abRepo = abRepo;
 	}
 	
 	public Ability findByInnate(String type) throws NoTypeException {
 		Type t = Type.strType(type);
-		return abRepo.findById(t.getInnate()).get();
+		System.out.println(t.getInnate());
+		Ability out = abRepo.findById(t.getInnate()).get();
+		return out;
 	}
 	
 	public Ability findName(String name) throws NoAbilityException {
-		for(Ability a: abRepo.findAll()) {
-			if(a.getName().toLowerCase().equals(name.toLowerCase())) return a;
-		}
-		throw new NoAbilityException("No ability found with name: " + name);
+		return abRepo.findByName(name).get();
+	}
+	
+	public Ability findById(Long id) {
+		return abRepo.findById(id).get();
 	}
 }

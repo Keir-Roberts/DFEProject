@@ -94,6 +94,17 @@ public class Monster {
 		this.description = description;
 	}
 
+	public Monster(long id, String name, int attack, int health, String typeStr, String description, boolean built) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.attack = attack;
+		this.health = health;
+		this.typeStr = typeStr;
+		this.description = description;
+		this.built = built;
+	}
+
 	public Monster(long id, String name, int attack, int health, String typeStr, String description) {
 		super();
 		this.id = id;
@@ -102,6 +113,20 @@ public class Monster {
 		this.health = health;
 		this.typeStr = typeStr;
 		this.description = description;
+	}
+
+	public Monster(long id, String name, int attack, int health, String typeStr, List<Ability> abilities,
+			String description, Type type, boolean built) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.attack = attack;
+		this.health = health;
+		this.typeStr = typeStr;
+		Abilities = abilities;
+		this.description = description;
+		this.type = type;
+		this.built = built;
 	}
 
 	public Monster(String name, int attack, int health, String typeStr, String description) {

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.project.classes.Monster;
-import com.example.project.exceptions.NoTypeException;
 import com.example.project.service.MonsterService;
 import com.example.project.service.ValidateService;
 
@@ -41,7 +40,7 @@ public class MonsterRestController {
 	}
 
 	@GetMapping("/getMon/{id}")
-	public Monster getMonid(@PathVariable("id") Long id) throws NoTypeException {
+	public Monster getMonid(@PathVariable("id") Long id) throws Exception {
 		return service.readID(id);
 	}
 
@@ -56,7 +55,7 @@ public class MonsterRestController {
 	}
 
 	@GetMapping("/compareMon/{ID1}/{ID2}")
-	public String compareMon(@PathVariable("ID1") Long id1, @PathVariable("ID2") Long id2) throws NoTypeException {
+	public String compareMon(@PathVariable("ID1") Long id1, @PathVariable("ID2") Long id2) throws Exception {
 		return service.compare(id1, id2);
 	}
 
@@ -78,7 +77,7 @@ public class MonsterRestController {
 	}
 
 	@DeleteMapping("/monDelete/{id}")
-	public String deleteMon(@PathVariable("id") long id) throws NoTypeException {
+	public String deleteMon(@PathVariable("id") long id) throws Exception {
 		return service.deleteMon(id);
 	}
 
