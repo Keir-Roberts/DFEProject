@@ -69,10 +69,12 @@ public class MonsterService {
 
 	public Monster unbuild(Monster monster) throws Exception {
 		if (monster.isBuilt()) {
+			String type = monster.getType();
 			monster.setAttack(monster.getAttack() - monster.getTypeEnum().getBaseATK());
 			monster.setHealth(monster.getHealth() - monster.getTypeEnum().getBaseDEF());
-			monster.setType(monster.getTypeEnum().getType());
-			removeMonAbility(monster, abService.findByInnate(monster.getType()));
+			monster.setTypeEnum(Type.NULL);
+			removeMonAbility(monster, abService.findByInnate(type));
+			monster.setTypeEnum(Type.strType(type));
 			monster.setBuilt(false);
 			return monster;
 		} else
@@ -124,7 +126,7 @@ public class MonsterService {
 	}
 
 	public Monster updateMonAttack(Long id, int change) throws Exception {
-		Monster mon = readID(id);
+		Monster mon = getID(id);
 		valid.valStatChange("attack", mon, change);
 		int atk = mon.getAttack();
 		mon.setAttack(atk + change);
@@ -133,7 +135,7 @@ public class MonsterService {
 	}
 
 	public Monster updateMonHealth(Long id, int change) throws Exception {
-		Monster mon = readID(id);
+		Monster mon = getID(id);
 		valid.valStatChange("health", mon, change);
 		int def = mon.getHealth();
 		mon.setHealth(def + change);
@@ -142,9 +144,9 @@ public class MonsterService {
 	}
 
 	public Monster addMonAbility(Long id, String name) throws Exception {
-		Monster mon = readID(id);
+		Monster mon = getID(id);
 		Ability ability = abService.findName(name);
-		valid.validAbilityRemove(mon, ability);
+		valid.validAbilityAdd(mon, ability);
 		List<Ability> abilities = mon.getAbilities();
 		abilities.add(ability);
 		mon.setAbilities(abilities);
@@ -152,7 +154,7 @@ public class MonsterService {
 	}
 
 	public Monster removeMonAbility(Long id, String name) throws Exception {
-		Monster mon = readID(id);
+		Monster mon = getID(id);
 		Ability ability = abService.findName(name);
 		valid.validAbilityRemove(mon, ability);
 		List<Ability> abilities = mon.getAbilities();
@@ -182,9 +184,9 @@ public class MonsterService {
 	}
 
 	public String compare(Long id1, Long id2) throws Exception {
-		Monster m1 = this.readID(id1);
+		Monster m1 = this.getID(id1);
 		String n1 = m1.getName();
-		Monster m2 = this.readID(id2);
+		Monster m2 = this.getID(id2);
 		String n2 = m2.getName();
 		int defDif = m1.getHealth() - m2.getHealth();
 		String health;
@@ -218,7 +220,7 @@ public class MonsterService {
 	public Monster Update(Long id, Monster monster) throws Exception {
 		monster.setTypeEnum(Type.strType(monster.getType()));
 		if (valid.BPCheck(monster));
-		Monster original = readID(id);
+		Monster original = getID(id);
 		unbuild(original);
 		original.setName(monster.getName());
 		original.setType(monster.getType());

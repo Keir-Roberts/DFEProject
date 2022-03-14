@@ -1,4 +1,6 @@
 INSERT INTO `ability` (id, name, description) VALUES 
+	(0, 'null', 'null');
+INSERT INTO `ability` (id, name, description) VALUES 
 	(1, 'sturdy', 'Reduces damage by 1');
 	INSERT INTO `ability` (id, name, description) VALUES  
 	(2, 'critical', '25% chance to deal double damage');

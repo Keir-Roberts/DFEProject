@@ -59,6 +59,11 @@ public class Ability {
 	public Ability() {
 		super();
 	}
+
+	@Override
+	public String toString() {
+		return "Ability [id = " + id + ", name = " + name + ", description = " + description + "]";
+	}
 	
 	
 }
