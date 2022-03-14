@@ -171,6 +171,7 @@ public class monsterControllerIntegerationTest {
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
 		ResultMatcher matchContent = MockMvcResultMatchers.content()
 				.json(this.jsonifier.writeValueAsString(mapToDTO(updated4)));
+		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	
 	@Test
@@ -180,6 +181,7 @@ public class monsterControllerIntegerationTest {
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
 		ResultMatcher matchContent = MockMvcResultMatchers.content()
 				.json(this.jsonifier.writeValueAsString(mapToDTO(updated5)));
+		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	private final Ability evade = new Ability(4L, "evade", "25% chance to avoid all damage");
 	private final Ability revive = new Ability(8L, "revive", "once after going to <1 health, revert back to 1 health");
