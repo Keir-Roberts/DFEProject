@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import com.example.project.classes.Ability;
+import com.example.project.dto.AbilityDTO;
 import com.example.project.exceptions.NoAbilityException;
 import com.example.project.exceptions.NoTypeException;
 import com.example.project.repo.abilityRepo;
@@ -36,41 +37,44 @@ public class AbilityServiceTests {
 	@Test
 	public void testFindInnate() {
 		Ability testAbility = new Ability(0L, "test", "test");
+		AbilityDTO testAbilityDTO = new AbilityDTO(0L, "test", "test");
 		Optional<Ability> test = Optional.of(testAbility);
 		Mockito.when(this.repo.findById(Mockito.anyLong())).thenReturn(test);
-		Ability result = null;
+		AbilityDTO result = null;
 		try {
 			result = service.findByInnate("undead");
 		} catch (NoTypeException t) {
 			fail("Should recognise type");
 		}
-		Assertions.assertThat(result).isEqualTo(testAbility);
+		Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(testAbilityDTO);
 		Mockito.verify(repo, Mockito.times(1)).findById(8L);
 	}
 
 	@Test
 	public void testFName() {
 		Ability testAbility = new Ability(0L, "test", "test");
+		Ability testAbilityDTO = new Ability(0L, "test", "test");
 		Optional<Ability> test = Optional.of(testAbility);
 		Mockito.when(this.repo.findByName(Mockito.anyString())).thenReturn(test);
-		Ability result = null;
+		AbilityDTO result = null;
 		try {
 			result = service.findName("test");
 		} catch (NoAbilityException t) {
 			fail("Should recognise type");
 		}
-		Assertions.assertThat(result).isEqualTo(testAbility);
+		Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(testAbilityDTO);
 		Mockito.verify(repo, Mockito.times(1)).findByName("test");
 	}
 
 	@Test
 	public void testFId() throws NoAbilityException {
 		Ability testAbility = new Ability(0L, "test", "test");
+		AbilityDTO testDTO = new AbilityDTO(0L, "test", "test");
 		Optional<Ability> test = Optional.of(testAbility);
 		Mockito.when(this.repo.findById(Mockito.anyLong())).thenReturn(test);
-		Ability result = null;
+		AbilityDTO result = null;
 		result = service.findById(1L);
-		Assertions.assertThat(result).isEqualTo(testAbility);
+		Assertions.assertThat(result).usingRecursiveComparison().isEqualTo(testDTO);
 		Mockito.verify(repo, Mockito.times(1)).findById(1L);
 	}
 
@@ -86,7 +90,7 @@ public class AbilityServiceTests {
 	public void testAddAbility() {
 		Ability test = new Ability(1L, "test", "test");
 		Mockito.when(this.repo.save(test)).thenReturn(test);
-		assertThat(service.addAbility(test)).isEqualTo(test);
+		assertThat(service.addAbility(test)).usingRecursiveComparison().isEqualTo(test);
 	}
 
 	@Test
@@ -107,14 +111,26 @@ public class AbilityServiceTests {
 	}
 
 	@Test
-	public void testDelete() {
-		Ability test1 = new Ability(1L, "test", "test1");
-		Mockito.when(repo.findById(1L)).thenReturn(Optional.of(test1));
+	public void testDeleteSuccess() {
+		Ability test1 = new Ability(17L, "test", "test1");
+		Mockito.when(repo.findById(17L)).thenReturn(Optional.of(test1));
 		try {
-			assertThat(service.DeleteAbility(1L)).isEqualTo("test has been deleted");
+			assertThat(service.DeleteAbility(17L)).isEqualTo("test has been deleted");
 		} catch (Exception e) {
 			fail(e.getMessage());
 		}
-		Mockito.verify(repo, Mockito.times(1)).findById(1L);
+		Mockito.verify(repo, Mockito.times(1)).findById(17L);
+	}
+	
+	@Test
+	public void testDeleteInnate() {
+		Ability evade = new Ability(4L, "Evade", "25% chance to avoid all damage");
+		Mockito.when(repo.findById(4L)).thenReturn(Optional.of(evade));
+		try {
+			assertThat(service.DeleteAbility(4L)).isEqualTo("Cannot delete Abilities that are innate to a Type");
+		} catch (Exception e) {
+			fail(e.getMessage());
+		}
+		Mockito.verify(repo, Mockito.times(1)).findById(4L);
 	}
 }

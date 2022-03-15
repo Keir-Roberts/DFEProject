@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.project.classes.Ability;
+import com.example.project.dto.AbilityDTO;
 import com.example.project.exceptions.NoAbilityException;
 import com.example.project.exceptions.NoTypeException;
 import com.example.project.service.AbilityService;
@@ -27,32 +28,32 @@ public class AbilityRestController {
 	}
 	
 	@PostMapping("/ability/create") 
-	public ResponseEntity<Ability> createAbility(@RequestBody Ability ability) {
-	return new ResponseEntity<Ability>(this.service.addAbility(ability), HttpStatus.CREATED);
+	public ResponseEntity<AbilityDTO> createAbility(@RequestBody Ability ability) {
+	return new ResponseEntity<AbilityDTO>(this.service.addAbility(ability), HttpStatus.CREATED);
 }
 	
 	@GetMapping("/ability/getAll")
-	public List<Ability> getAll() {
+	public List<AbilityDTO> getAll() {
 		return this.service.getAllAbiliity();
 	}
 	
 	@GetMapping("/ability/findInnate/{type}")
-	public Ability getInnate(@PathVariable("type") String type) throws NoTypeException {
+	public AbilityDTO getInnate(@PathVariable("type") String type) throws NoTypeException {
 		return this.service.findByInnate(type);
 	}
 	
 	@GetMapping("/ability/findName/{name}")
-	public Ability getName(@PathVariable("name") String name) throws NoAbilityException {
+	public AbilityDTO getName(@PathVariable("name") String name) throws NoAbilityException {
 	return this.service.findName(name);
 	}
 	
 	@GetMapping("/ability/findID/{id}")
-	public Ability getID(@PathVariable("id") Long id) {
+	public AbilityDTO getID(@PathVariable("id") Long id) {
 		return this.service.findById(id);
 	}
 	
 	@PutMapping("/ability/update/{id}")
-	public Ability update(@RequestBody Ability ability, @PathVariable("id") Long id) throws Exception {
+	public AbilityDTO update(@RequestBody Ability ability, @PathVariable("id") Long id) throws Exception {
 		return this.service.Update(id, ability);
 	}
 	

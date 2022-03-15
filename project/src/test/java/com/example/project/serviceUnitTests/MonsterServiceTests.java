@@ -21,8 +21,8 @@ import com.example.project.classes.Ability;
 import com.example.project.classes.Monster;
 import com.example.project.enums.Type;
 import com.example.project.exceptions.NoTypeException;
+import com.example.project.repo.abilityRepo;
 import com.example.project.repo.monsterRepo;
-import com.example.project.service.AbilityService;
 import com.example.project.service.MonsterService;
 import com.example.project.service.ValidateService;
 
@@ -38,7 +38,7 @@ public class MonsterServiceTests {
 	private ValidateService valid;
 
 	@MockBean
-	private AbilityService abServ;
+	private abilityRepo abRepo;
 
 	@Autowired
 	private MonsterService service;
@@ -63,11 +63,7 @@ public class MonsterServiceTests {
 		abilities.add(ability);
 		Monster monIn = new Monster(2, "test", 1, 1, "undead", "test");
 		Monster expected = new Monster(2, "test", 2, 7, "undead", abilities, "test", Type.UNDEAD, true);
-		try {
-			when(abServ.findByInnate(Mockito.anyString())).thenReturn(ability);
-		} catch (NoTypeException e1) {
-			fail("should not fail");
-		}
+		when(abRepo.findById(Mockito.any())).thenReturn(Optional.of(ability));
 		try {
 			Mockito.doReturn(monIn).when(spyMonS).addMonAbility(Mockito.any(Monster.class), Mockito.any());
 		} catch (Exception e) {
@@ -85,11 +81,7 @@ public class MonsterServiceTests {
 		} catch (Exception e) {
 			fail("Should not fail");
 		}
-		try {
-			Mockito.verify(abServ, Mockito.times(1)).findByInnate("undead");
-		} catch (NoTypeException e) {
-			fail("should not fail");
-		}
+		Mockito.verify(abRepo, Mockito.times(1)).findById(8L);
 	}
 
 	@Test
@@ -112,11 +104,7 @@ public class MonsterServiceTests {
 		abilities.add(ability);
 		Monster expected = new Monster(2, "test", 1, 1, "Undead", abilities, "test", Type.UNDEAD, false);
 		Monster monIn = new Monster(2, "test", 2, 7, "Undead", abilities, "test", Type.UNDEAD, true);
-		try {
-			when(abServ.findByInnate(Mockito.anyString())).thenReturn(ability);
-		} catch (NoTypeException e1) {
-			fail("shouldnt fail with " + e1.getMessage());
-		}
+		when(abRepo.findById(Mockito.any())).thenReturn(Optional.of(ability));
 		try {
 			Mockito.doReturn(monIn).when(spyMonS).removeMonAbility(Mockito.any(Monster.class), Mockito.any());
 			spyMonS.unbuild(monIn);
@@ -129,11 +117,8 @@ public class MonsterServiceTests {
 		} catch (Exception e) {
 			fail("shouldnt fail with " + e.getMessage());
 		}
-		try {
-			Mockito.verify(abServ, Mockito.times(1)).findByInnate("Undead");
-		} catch (NoTypeException e) {
-			fail("shouldnt fail with " + e.getMessage());
-		}
+			Mockito.verify(abRepo, Mockito.times(1)).findById(8L);
+		
 	}
 
 	@Test
@@ -315,11 +300,11 @@ public void testAddAbilityId() {
 	when(mRepo.save(monIn)).thenReturn(monIn);
 	
 	try {
-		when(abServ.findName("ability")).thenReturn(abilityIn);
+		when(abRepo.findByName("ability")).thenReturn(Optional.of(abilityIn));
 		Mockito.doReturn(monIn).when(spyMonS).readID(1L);
 		assertThat(spyMonS.addMonAbility(1L, "ability")).usingRecursiveComparison().isEqualTo(expected);
 		Mockito.verify(spyMonS, Mockito.times(1)).readID(1L);
-		Mockito.verify(abServ, Mockito.times(1)).findName("ability");
+		Mockito.verify(abRepo, Mockito.times(1)).findByName("ability");
 	} catch (Exception e) {
 		fail("shouldnt fail with " + e.getMessage());
 	}
@@ -338,11 +323,11 @@ public void removeAbilityId() {
 	when(mRepo.save(monIn)).thenReturn(monIn);
 	
 	try {
-		when(abServ.findName("ability")).thenReturn(abilityIn);
+		when(abRepo.findByName("ability")).thenReturn(Optional.of(abilityIn));
 		Mockito.doReturn(monIn).when(spyMonS).readID(1L);
 		assertThat(spyMonS.removeMonAbility(1L, "ability")).usingRecursiveComparison().isEqualTo(expected);
 		Mockito.verify(spyMonS, Mockito.times(1)).readID(1L);
-		Mockito.verify(abServ, Mockito.times(1)).findName("ability");
+		Mockito.verify(abRepo, Mockito.times(1)).findByName("ability");
 	} catch (Exception e) {
 		fail("shouldnt fail with " + e.getMessage());
 	}

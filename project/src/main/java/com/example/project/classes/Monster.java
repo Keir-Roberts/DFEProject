@@ -5,6 +5,9 @@ import java.util.List;
 
 import javax.persistence.*;
 
+import org.modelmapper.ModelMapper;
+
+import com.example.project.dto.AbilityDTO;
 import com.example.project.enums.Type;
 
 @Entity
@@ -26,7 +29,7 @@ public class Monster {
 	@Column
 	private String type;
 	
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.LAZY ,cascade = {CascadeType.ALL})
 	@JoinTable(name = "mon_ability", joinColumns = @JoinColumn(name = "monster_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "ability_id", referencedColumnName = "id"))
 	private List<Ability> Abilities = new ArrayList<Ability>();
 	
@@ -78,10 +81,19 @@ public class Monster {
 		this.typeEnum = type;
 	}
 
-	public List<Ability> getAbilities() {
-		return Abilities;
+	public List<AbilityDTO> getAbilities() {
+		List<AbilityDTO> out = new ArrayList<AbilityDTO>();
+		ModelMapper mapper = new ModelMapper();
+		for (Ability a: Abilities) {
+			out.add(mapper.map(a, AbilityDTO.class));
+		}
+		return out;
 	}
 
+	public List<Ability> trueGetAbilities() {
+		return Abilities;
+	}
+	
 	public void setAbilities(List<Ability> abilities) {
 		Abilities = abilities;
 	}

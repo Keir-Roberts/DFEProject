@@ -25,7 +25,6 @@ import com.example.project.classes.Ability;
 import com.example.project.classes.Monster;
 import com.example.project.dto.MonsterDTO;
 import com.example.project.enums.Type;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)

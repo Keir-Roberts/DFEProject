@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.example.project.classes.Ability;
 import com.example.project.enums.Type;
 import com.example.project.exceptions.NoTypeException;
+import com.example.project.repo.abilityRepo;
 import com.example.project.repo.monsterRepo;
 import com.example.project.classes.Monster;
 import com.example.project.dto.MonsterDTO;
@@ -19,15 +20,15 @@ public class MonsterService {
 	private monsterRepo repo;
 
 	private ValidateService valid;
-
-	private AbilityService abService;
+	
+	private abilityRepo abRepo;
 
 	private ModelMapper mapper;
 	
-	public MonsterService(monsterRepo repo, AbilityService abService, ValidateService valid, ModelMapper mapper) {
+	public MonsterService(monsterRepo repo, abilityRepo abRepo, ValidateService valid, ModelMapper mapper) {
 		this.valid = valid;
 		this.repo = repo;
-		this.abService = abService;
+		this.abRepo = abRepo;
 		this.mapper = mapper;
 	}
 
@@ -52,7 +53,7 @@ public class MonsterService {
 			monster.setAttack(typeEnum.getAttack(attack));
 			monster.setHealth(typeEnum.getDef(health));
 			monster.setBuilt(true);
-			addMonAbility(monster, abService.findByInnate(monster.getType()));
+			addMonAbility(monster, abRepo.findById(typeEnum.getInnate()).get());
 			return monster;
 		} else
 			return monster;
@@ -60,7 +61,7 @@ public class MonsterService {
 
 	public Monster addMonAbility(Monster mon, Ability ability) throws Exception {
 		valid.validAbilityAdd(mon, ability);
-		List<Ability> abilities = mon.getAbilities();
+		List<Ability> abilities = mon.trueGetAbilities();
 		abilities.add(ability);
 		mon.setAbilities(abilities);
 		return repo.save(mon);
@@ -73,7 +74,7 @@ public class MonsterService {
 			monster.setAttack(monster.getAttack() - monster.getTypeEnum().getBaseATK());
 			monster.setHealth(monster.getHealth() - monster.getTypeEnum().getBaseDEF());
 			monster.setTypeEnum(Type.NULL);
-			removeMonAbility(monster, abService.findByInnate(type));
+			removeMonAbility(monster, abRepo.findById(Type.strType(type).getInnate()).get());
 			monster.setTypeEnum(Type.strType(type));
 			monster.setBuilt(false);
 			return monster;
@@ -145,9 +146,9 @@ public class MonsterService {
 
 	public Monster addMonAbility(Long id, String name) throws Exception {
 		Monster mon = getID(id);
-		Ability ability = abService.findName(name);
+		Ability ability = abRepo.findByName(name).get();
 		valid.validAbilityAdd(mon, ability);
-		List<Ability> abilities = mon.getAbilities();
+		List<Ability> abilities = mon.trueGetAbilities();
 		abilities.add(ability);
 		mon.setAbilities(abilities);
 		return repo.save(mon);
@@ -155,16 +156,16 @@ public class MonsterService {
 
 	public Monster removeMonAbility(Long id, String name) throws Exception {
 		Monster mon = getID(id);
-		Ability ability = abService.findName(name);
+		Ability ability = abRepo.findByName(name).get();
 		valid.validAbilityRemove(mon, ability);
-		List<Ability> abilities = mon.getAbilities();
+		List<Ability> abilities = mon.trueGetAbilities();
 		abilities.remove(ability);
 		mon.setAbilities(abilities);
 		return repo.save(mon);
 	}
 
 	public Monster removeMonAbility(Monster mon, Ability ability) throws Exception {
-		List<Ability> abilities = mon.getAbilities();
+		List<Ability> abilities = mon.trueGetAbilities();
 		if (mon.getTypeEnum().getInnate() == ability.getId()) {
 			throw new Exception("Cannot remove innate abilities");
 		}
