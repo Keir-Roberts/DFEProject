@@ -1,5 +1,7 @@
 package com.example.project.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.example.project.classes.Ability;
@@ -19,7 +21,6 @@ public class AbilityService {
 	
 	public Ability findByInnate(String type) throws NoTypeException {
 		Type t = Type.strType(type);
-		System.out.println(t.getInnate());
 		Ability out = abRepo.findById(t.getInnate()).get();
 		return out;
 	}
@@ -30,5 +31,27 @@ public class AbilityService {
 	
 	public Ability findById(Long id) {
 		return abRepo.findById(id).get();
+	}
+	
+	public List<Ability> getAllAbiliity() {
+		return abRepo.findAll();
+	}
+	
+	public Ability addAbility(Ability abi) {
+		return abRepo.save(abi);
+	}
+	
+	public Ability Update(Long id, Ability ability) throws Exception {
+		Ability original = abRepo.findById(id).get();
+		original.setName(ability.getName());
+		original.setDescription(ability.getDescription());
+		return abRepo.save(original);
+	}
+	
+	public String DeleteAbility(Long id) throws Exception{
+	Ability out = abRepo.findById(id).get();
+	String name = out.getName();
+	abRepo.delete(out);
+	return name + "has been deleted";
 	}
 }
