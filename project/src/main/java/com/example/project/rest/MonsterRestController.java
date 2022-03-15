@@ -21,9 +21,9 @@ import com.example.project.service.ValidateService;
 @RestController
 public class MonsterRestController {
 
-	private MonsterService service;
+	public MonsterService service;
 	
-	private ValidateService valid;
+	public ValidateService valid;
 
 	public MonsterRestController(MonsterService service, ValidateService valid) {
 		this.service = service;
