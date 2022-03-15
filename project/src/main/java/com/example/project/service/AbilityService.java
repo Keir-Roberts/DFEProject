@@ -52,6 +52,6 @@ public class AbilityService {
 	Ability out = abRepo.findById(id).get();
 	String name = out.getName();
 	abRepo.delete(out);
-	return name + "has been deleted";
+	return name + " has been deleted";
 	}
 }

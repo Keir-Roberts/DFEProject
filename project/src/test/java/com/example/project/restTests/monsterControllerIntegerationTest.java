@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@Sql(scripts = { "classpath:monster-data-schema.sql",
+@Sql(scripts = { "classpath:test-data-schema.sql",
 		"classpath:monster-data.sql" }, executionPhase = ExecutionPhase.BEFORE_TEST_METHOD)
 @ActiveProfiles("test")
 public class monsterControllerIntegerationTest {

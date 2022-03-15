@@ -1,6 +1,4 @@
 INSERT INTO `ability` (id, name, description) VALUES 
-	(0, 'null', 'null');
-INSERT INTO `ability` (id, name, description) VALUES 
 	(1, 'sturdy', 'Reduces damage by 1');
 	INSERT INTO `ability` (id, name, description) VALUES  
 	(2, 'critical', '25% chance to deal double damage');
@@ -30,3 +28,5 @@ INSERT INTO `ability` (id, name, description) VALUES
 	(14, 'defensive', 'this monster does not take extra damage from enemies that are strong against it. if the opponent has ruthless, they cancel out');
 	INSERT INTO `ability` (id, name, description) VALUES 
 	(15, 'retaliate', 'this monster deals 1 extra damage per piece of health missing');
+	INSERT INTO `ability` (id, name, description) VALUES 
+	(16, 'null', 'null');

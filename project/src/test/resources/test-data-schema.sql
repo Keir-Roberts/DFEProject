@@ -13,3 +13,4 @@ monster_id bigint,
 ability_id bigint,
 foreign key (monster_id) references monster(id),
 foreign key (ability_id) references ability(id));
+
