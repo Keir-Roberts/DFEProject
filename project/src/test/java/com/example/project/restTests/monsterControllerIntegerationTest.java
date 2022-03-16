@@ -8,11 +8,14 @@ import org.springframework.http.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,6 +28,8 @@ import com.example.project.classes.Ability;
 import com.example.project.classes.Monster;
 import com.example.project.dto.MonsterDTO;
 import com.example.project.enums.Type;
+import com.example.project.repo.abilityRepo;
+import com.example.project.repo.monsterRepo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
@@ -34,6 +39,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @ActiveProfiles("test")
 public class monsterControllerIntegerationTest {
 
+	@Autowired
+	private monsterRepo mrepo;
+	
+	@Autowired 
+	private abilityRepo arepo;
+	
 	@Autowired
 	private MockMvc mock;
 
@@ -47,7 +58,23 @@ public class monsterControllerIntegerationTest {
 	@Autowired
 	private ObjectMapper jsonifier;
 
+	@BeforeEach
+	public void addAbilities() {
+		Monster mon1 = mrepo.findById(1L).get();
+		mon1.setAbilities(List.of(arepo.findById(4L).get()));
+		mrepo.save(mon1);
+		
+		Monster mon2 = mrepo.findById(2L).get();
+		mon2.setAbilities(List.of(arepo.findById(4L).get(), arepo.findById(8L).get()));
+		mrepo.save(mon2);
+		
+		Monster mon4 = mrepo.findById(4L).get();
+		mon4.setAbilities(List.of(arepo.findById(6L).get(), arepo.findById(8L).get()));
+		mrepo.save(mon4);
+	}
+	
 	@Test
+	@DirtiesContext
 	public void testCreateMon() throws Exception {
 		MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.POST, "/mon/create");
 		mockRequest.contentType(MediaType.APPLICATION_JSON);
@@ -118,11 +145,12 @@ public class monsterControllerIntegerationTest {
 				+ "      They both have the same attack score of 7\n" + "\n" + " Health: \n"
 				+ "      They both have the same health score of 7\n" + "\n" + " Abilities \n"
 				+ "      test1's abilities are: [Ability [id = 4, name = evade, description = 25% chance to avoid all damage]]\n"
-				+ "      test2's abilities are: [Ability [id = 8, name = revive, description = once after going to <1 health, revert back to 1 health], Ability [id = 4, name = evade, description = 25% chance to avoid all damage]]");
+				+ "      test2's abilities are: [Ability [id = 4, name = evade, description = 25% chance to avoid all damage], Ability [id = 8, name = revive, description = once after going to <1 health, revert back to 1 health]]");
 		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	
 	@Test
+	@DirtiesContext
 	public void testUpdate() throws Exception {
 			MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.PUT, "/mon/update/2");
 			mockRequest.contentType(MediaType.APPLICATION_JSON);
@@ -155,6 +183,7 @@ public class monsterControllerIntegerationTest {
 	}
 	
 	@Test
+	@DirtiesContext
 	public void testDelete() throws Exception {
 		MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.DELETE, "/mon/Delete/2");
 		mockRequest.accept(MediaType.TEXT_PLAIN);
@@ -164,6 +193,7 @@ public class monsterControllerIntegerationTest {
 	}
 	
 	@Test
+	@DirtiesContext
 	public void testAddAbility() throws Exception {
 		MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.POST, "/mon/addAbility/2/momentum");
 		mockRequest.accept(MediaType.APPLICATION_JSON);
@@ -206,4 +236,5 @@ public class monsterControllerIntegerationTest {
 			Type.UNDEAD, true);
 	private final Monster updated5 = new Monster(2L, "test2", 4, 7, "Undead", removedlist, "2nd test desc has abilities",
 			Type.UNDEAD, true);
+	private final Monster delete5 = new Monster(5L, "delete", 8, 8, "Undead", removedlist, "to be deleted", Type.UNDEAD, true);
 }

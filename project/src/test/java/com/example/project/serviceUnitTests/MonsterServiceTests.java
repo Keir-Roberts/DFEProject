@@ -1,22 +1,19 @@
 package com.example.project.serviceUnitTests;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import com.example.project.classes.Ability;
 import com.example.project.classes.Monster;
 import com.example.project.enums.Type;
@@ -27,7 +24,6 @@ import com.example.project.service.MonsterService;
 import com.example.project.service.ValidateService;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class MonsterServiceTests {
 
@@ -127,7 +123,6 @@ public class MonsterServiceTests {
 		Monster monIn = new Monster(1, "test", 1, 1, "Undead", abilities, "test", Type.UNDEAD, true);
 		Monster saveMon = new Monster(1, "test", 1, 1, "Undead", abilities, "test", Type.UNDEAD, true);
 		when(mRepo.save(Mockito.any(Monster.class))).thenReturn(saveMon);
-		when(valid.convertEnumToStr(Mockito.any(Monster.class))).thenReturn(monIn);
 		try {
 			assertThat(this.service.AddMonster(monIn)).usingRecursiveComparison().isEqualTo(saveMon);
 		} catch (Exception e) {
@@ -145,7 +140,6 @@ public class MonsterServiceTests {
 		Monster monIn = new Monster(1, "test", 1, 1, "undead", abilities, "test", Type.UNDEAD, false);
 		Monster builtMon = new Monster(1, "test", 2, 7, "undead", abilities, "test", Type.UNDEAD, true);
 		when(mRepo.save(monIn)).thenReturn(monIn);
-		when(valid.convertEnumToStr(Mockito.any(Monster.class))).thenReturn(monIn);
 		when(mRepo.save(builtMon)).thenReturn(builtMon);
 		try {
 			Mockito.doReturn(builtMon).when(spyMonS).build(monIn);

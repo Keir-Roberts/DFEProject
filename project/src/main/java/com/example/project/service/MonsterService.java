@@ -86,7 +86,7 @@ public class MonsterService {
 		this.repo.save(monster);
 		monster.setType(monster.getTypeEnum().getType());
 		if (monster.isBuilt()) {
-			valid.convertStrToEnum(monster);
+			monster.setTypeEnum(Type.strType(monster.getType()));
 			return this.repo.save(monster);
 		} else {
 			monster = build(monster);

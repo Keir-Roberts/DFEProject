@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.project.classes.Monster;
 import com.example.project.dto.MonsterDTO;
+import com.example.project.enums.Type;
 import com.example.project.service.MonsterService;
 import com.example.project.service.ValidateService;
 
@@ -32,7 +33,7 @@ public class MonsterRestController {
 
 	@PostMapping("/mon/create")
 	public ResponseEntity<MonsterDTO> build(@RequestBody Monster monster) throws Exception {
-		valid.convertStrToEnum(monster);
+		monster.setTypeEnum(Type.strType(monster.getType()));
 		return new ResponseEntity<MonsterDTO>(this.service.mapToDTO(this.service.AddMonster(monster)), HttpStatus.CREATED);
 	}
 

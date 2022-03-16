@@ -1,74 +1,50 @@
 package com.example.project.serviceUnitTests;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.example.project.classes.Ability;
 import com.example.project.classes.Monster;
+import com.example.project.dto.AbilityDTO;
 import com.example.project.enums.Type;
 import com.example.project.exceptions.BuildPointException;
 import com.example.project.exceptions.NoAbilityException;
-import com.example.project.exceptions.NoTypeException;
 import com.example.project.exceptions.existingAbilityException;
 import com.example.project.service.ValidateService;
 
-@RunWith(MockitoJUnitRunner.class)
+
+
+
+@SpringBootTest
 public class ValidateServiceTests {
 
-	@Mock
+	@MockBean
 	private Monster monster;
 
-	@Mock
+	@MockBean
 	private ValidateService mockValid;
 
-	@Mock
+	@MockBean
 	private Ability ability;
 
 	@InjectMocks
 	private ValidateService valid;
 
-	@Test
-	public void testConvertStEpass() {
-		Monster mon = new Monster(0, "test", 1, 1, "undead", "test");
-		try {
-			valid.convertStrToEnum(mon);
-		} catch (NoTypeException t) {
-			fail("Should recognise type");
-		}
-		assertEquals("Should return type.UNDEAD", mon.getTypeEnum(), Type.UNDEAD);
-	}
 
-	@Test
-	public void testConvertStEfail() {
-		Monster mon = new Monster(0, "test", 1, 1, ".", "test");
-		Throwable exception = assertThrows(NoTypeException.class, () -> valid.convertStrToEnum(mon));
-		assertEquals("expected \"Cannot find a type called .\" but got" + exception.getMessage(),
-				"Cannot find a type called .", exception.getMessage());
-	}
-
-	@Test
-	public void testConvertEnumToStr() {
-		Monster mon = new Monster();
-		mon.setTypeEnum(Type.FAE);
-		valid.convertEnumToStr(mon);
-		assertEquals("Expected 'Fae' but recieved " + mon.getType(), "Fae", mon.getType());
-	}
 
 	@Test
 	public void testBPCheckT() {
@@ -82,7 +58,7 @@ public class ValidateServiceTests {
 		} catch (BuildPointException b) {
 			fail("Should pass");
 		}
-		assertTrue(out);
+		assertThat(out).isTrue();
 	}
 
 	@Test
@@ -92,45 +68,43 @@ public class ValidateServiceTests {
 
 		Mockito.doReturn(11).when(spyValid).bpUsed(Mockito.any());
 		Throwable exception = assertThrows(BuildPointException.class, () -> spyValid.BPCheck(mon));
-		assertEquals("error messages do not match",
-				"This monster has used a total of 11 'build points' which exceeds the maximum of: 10",
-				exception.getMessage());
+		assertThat("This monster has used a total of 11 'build points' which exceeds the maximum of: 10").isEqualTo(exception.getMessage());
 	}
 
 	@Test
 	public void testBpUsedBuilt() {
 		Monster mockMon = mock(Monster.class);
-		List<Ability> abilities = new ArrayList<Ability>();
-		abilities.add(new Ability());
-		abilities.add(new Ability());
-		when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
-		when(mockMon.isBuilt()).thenReturn(true);
-		when((mockMon.getAbilities())).thenReturn(abilities);
-		when(mockMon.getHealth()).thenReturn(5);
-		when(mockMon.getAttack()).thenReturn(6);
-		assertEquals("should be equal", 7, valid.bpUsed(mockMon));
-		verify(mockMon, times(1)).isBuilt();
-		verify(mockMon, times(1)).getAbilities();
-		verify(mockMon, times(1)).getHealth();
-		verify(mockMon, times(1)).getAttack();
-		verify(mockMon, times(1)).getTypeEnum();
+		List<AbilityDTO> abilities = new ArrayList<AbilityDTO>();
+		abilities.add(new AbilityDTO(1L, "test", "test"));
+		abilities.add(new AbilityDTO(2L, "test", "test"));
+		Mockito.when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
+		Mockito.when(mockMon.isBuilt()).thenReturn(true);
+		Mockito.when((mockMon.getAbilities())).thenReturn(abilities);
+		Mockito.when(mockMon.getHealth()).thenReturn(5);
+		Mockito.when(mockMon.getAttack()).thenReturn(6);
+		assertThat(7).isEqualTo(valid.bpUsed(mockMon));
+		Mockito.verify(mockMon, times(1)).isBuilt();
+		Mockito.verify(mockMon, times(1)).getAbilities();
+		Mockito.verify(mockMon, times(1)).getHealth();
+		Mockito.verify(mockMon, times(1)).getAttack();
+		Mockito.verify(mockMon, times(1)).getTypeEnum();
 	}
 
 	@Test
 	public void testBpUsedNotBuilt() {
 		Monster mockMon = mock(Monster.class);
-		List<Ability> abilities = new ArrayList<Ability>();
-		abilities.add(new Ability());
-		abilities.add(new Ability());
-		when(mockMon.isBuilt()).thenReturn(false);
-		when((mockMon.getAbilities())).thenReturn(abilities);
-		when(mockMon.getHealth()).thenReturn(5);
-		when(mockMon.getAttack()).thenReturn(6);
-		assertEquals("should be equal", 17, valid.bpUsed(mockMon));
-		verify(mockMon, times(1)).isBuilt();
-		verify(mockMon, times(1)).getAbilities();
-		verify(mockMon, times(1)).getHealth();
-		verify(mockMon, times(1)).getAttack();
+		List<AbilityDTO> abilities = new ArrayList<AbilityDTO>();
+		abilities.add(new AbilityDTO(1L, "test", "test"));
+		abilities.add(new AbilityDTO(2L, "test", "test"));
+		Mockito.when(mockMon.isBuilt()).thenReturn(false);
+		Mockito.when((mockMon.getAbilities())).thenReturn(abilities);
+		Mockito.when(mockMon.getHealth()).thenReturn(5);
+		Mockito.when(mockMon.getAttack()).thenReturn(6);
+		assertThat(17).isEqualTo(valid.bpUsed(mockMon));
+		Mockito.verify(mockMon, times(1)).isBuilt();
+		Mockito.verify(mockMon, times(1)).getAbilities();
+		Mockito.verify(mockMon, times(1)).getHealth();
+		Mockito.verify(mockMon, times(1)).getAttack();
 	}
 
 	@Test
@@ -139,63 +113,55 @@ public class ValidateServiceTests {
 		ValidateService spyValid = Mockito.spy(valid);
 
 		Mockito.doReturn(9).when(spyValid).bpUsed(Mockito.any());
-		assertEquals("Should be equal", 1, spyValid.bpLeft(mon));
+		assertThat(1).isEqualTo(spyValid.bpLeft(mon));
 	}
 
 	@Test
 	public void testValStatChangeAtkBPE() {
 		Monster mockMon = mock(Monster.class);
 		ValidateService spyValid = Mockito.spy(valid);
-		when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
-		when(mockMon.getAttack()).thenReturn(6);
+		Mockito.when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
+		Mockito.when(mockMon.getAttack()).thenReturn(6);
 		Mockito.doReturn(2).when(spyValid).bpLeft(mockMon);
 		Throwable exception = assertThrows(BuildPointException.class,
 				() -> spyValid.valStatChange("attack", mockMon, 7));
-		assertEquals("messages should match",
-				"This monster has 2 build points remaining. The proposed action costs 7 build points",
-				exception.getMessage());
+		assertThat("This monster has 2 build points remaining. The proposed action costs 7 build points").isEqualTo(exception.getMessage());
 	}
 
 	@Test
 	public void testValStatChangeDefBPE() {
 		Monster mockMon = mock(Monster.class);
 		ValidateService spyValid = Mockito.spy(valid);
-		when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
-		when(mockMon.getHealth()).thenReturn(6);
+		Mockito.when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
+		Mockito.when(mockMon.getHealth()).thenReturn(6);
 		Mockito.doReturn(2).when(spyValid).bpLeft(mockMon);
 		Throwable exception = assertThrows(BuildPointException.class,
 				() -> spyValid.valStatChange("health", mockMon, 7));
-		assertEquals("messages should match",
-				"This monster has 2 build points remaining. The proposed action costs 7 build points",
-				exception.getMessage());
+		assertThat("This monster has 2 build points remaining. The proposed action costs 7 build points").isEqualTo(exception.getMessage());
 	}
 	
 	@Test
 	public void testValStatChangeAtkIOB() {
 		Monster mockMon = mock(Monster.class);
 		ValidateService spyValid = Mockito.spy(valid);
-		when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
-		when(mockMon.getAttack()).thenReturn(4);
+		Mockito.when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
+		Mockito.when(mockMon.getAttack()).thenReturn(4);
 		Mockito.doReturn(5).when(spyValid).bpLeft(mockMon);
 		Throwable exception = assertThrows(IndexOutOfBoundsException.class,
 				() -> spyValid.valStatChange("attack", mockMon, -6));
-		assertEquals("messages should match",
-				"This monster has a base attack of: 1 and you cannot have an attack less than or equal to 0",
-				exception.getMessage());
+		assertThat("This monster has a base attack of: 1 and you cannot have an attack less than or equal to 0").isEqualTo(exception.getMessage());
 	}
 
 @Test
 public void testValStatChangeDefIOB() {
 	Monster mockMon = mock(Monster.class);
 	ValidateService spyValid = Mockito.spy(valid);
-	when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
-	when(mockMon.getHealth()).thenReturn(5);
+	Mockito.when(mockMon.getTypeEnum()).thenReturn(Type.BEAST);
+	Mockito.when(mockMon.getHealth()).thenReturn(5);
 	Mockito.doReturn(5).when(spyValid).bpLeft(mockMon);
 	Throwable exception = assertThrows(IndexOutOfBoundsException.class,
 			() -> spyValid.valStatChange("health", mockMon, -6));
-	assertEquals("messages should match",
-			"This monster has a base health of: 1 and you cannot have an attack less than or equal to 0",
-			exception.getMessage());
+	assertThat("This monster has a base health of: 1 and you cannot have an attack less than or equal to 0").isEqualTo(exception.getMessage());
 }
 
 @Test
@@ -205,7 +171,7 @@ public void testValAbilityAddBPE() {
 	Monster mockMon = mock(Monster.class);
 	Ability mockAbility = mock(Ability.class);
 	Throwable exception = assertThrows(BuildPointException.class, () -> spyValid.validAbilityAdd(mockMon, mockAbility));
-	assertEquals("Messages should be the same", "This monster has 1 'build points' remaining, and 3 'build points' are required to add a new Ability.", exception.getMessage());
+	assertThat("This monster has 1 'build points' remaining, and 3 'build points' are required to add a new Ability.").isEqualTo(exception.getMessage());
 }
 
 @Test
@@ -216,11 +182,11 @@ public void tesValAbilityAddEAE() {
 	Ability mockAbility = mock(Ability.class);
 	List<Ability> abilities = new ArrayList<Ability>();
 	abilities.add(mockAbility);
-	when(mockMon.getAbilities()).thenReturn(abilities);
-	when(mockMon.getName()).thenReturn("test");
-	when(mockAbility.getName()).thenReturn("test");
+	Mockito.when(mockMon.trueGetAbilities()).thenReturn(abilities);
+	Mockito.when(mockMon.getName()).thenReturn("test");
+	Mockito.when(mockAbility.getName()).thenReturn("test");
 	Throwable exception = assertThrows(existingAbilityException.class, () -> spyValid.validAbilityAdd(mockMon, mockAbility));
-	assertEquals("Messages should be the same", "test has already got ability test", exception.getMessage());
+	assertThat("test has already got ability test").isEqualTo(exception.getMessage());
 }
 
 @Test
@@ -230,10 +196,10 @@ public void testValAbilityRemoveNAE() {
 	Ability mockAbility = mock(Ability.class);
 	List<Ability> abilities = new ArrayList<Ability>();
 	abilities.add(new Ability());
-	when(mockMon.getAbilities()).thenReturn(abilities);
-	when(mockAbility.getName()).thenReturn("test");
+	Mockito.when(mockMon.trueGetAbilities()).thenReturn(abilities);
+	Mockito.when(mockAbility.getName()).thenReturn("test");
 	Throwable exception = assertThrows(NoAbilityException.class, () -> spyValid.validAbilityRemove(mockMon, mockAbility));
-	assertEquals("Messages should be the same", "This monster does not have test", exception.getMessage());
+	assertThat("This monster does not have test").isEqualTo(exception.getMessage());
 }
 
 @Test
@@ -243,10 +209,10 @@ public void testValidAbilityRemoveInnate() {
 	Ability mockAbility = mock(Ability.class);
 	List<Ability> abilities = new ArrayList<Ability>();
 	abilities.add(mockAbility);
-	when(mockMon.getAbilities()).thenReturn(abilities);
-	when(mockMon.getTypeEnum()).thenReturn(Type.FAE);
-	when(mockAbility.getId()).thenReturn(4L);
+	Mockito.when(mockMon.trueGetAbilities()).thenReturn(abilities);
+	Mockito.when(mockMon.getTypeEnum()).thenReturn(Type.FAE);
+	Mockito.when(mockAbility.getId()).thenReturn(4L);
 	Throwable exception = assertThrows(Exception.class, () -> spyValid.validAbilityRemove(mockMon, mockAbility));
-	assertEquals("Messages should be the same", "Cannot remove innate abilities", exception.getMessage());
+	assertThat("Cannot remove innate abilities").isEqualTo(exception.getMessage());
 }
 }

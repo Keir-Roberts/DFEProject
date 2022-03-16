@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,8 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -20,8 +19,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import com.example.project.classes.Ability;
+import com.example.project.dto.AbilityDTO;
 import com.example.project.repo.abilityRepo;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(webEnvironment = WebEnvironment.MOCK)
@@ -37,6 +36,13 @@ public class AbilityControllerIntegrationTest {
 	
 	@Autowired
 	private abilityRepo repo;
+	
+	@Autowired
+	private ModelMapper mapper;
+	
+	private AbilityDTO mapToDTO(Ability ability) {
+		return this.mapper.map(ability, AbilityDTO.class);
+	}
 	
 	private final Ability nul = new Ability(16L, "null", "null");
 	private final Ability sturdy = new Ability(1L, "sturdy", "Reduces damage by 1" );
@@ -64,16 +70,20 @@ public class AbilityControllerIntegrationTest {
 				"/ability/findInnate/fae");
 		mockRequest.accept(MediaType.APPLICATION_JSON);
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
-		ResultMatcher matchContent = MockMvcResultMatchers.content().json(this.jsonifier.writeValueAsString(evade));
+		ResultMatcher matchContent = MockMvcResultMatchers.content().json(this.jsonifier.writeValueAsString(mapToDTO(evade)));
 		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	
 	@Test
 	public void testGetAll() throws Exception {
 		MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.GET, "/ability/getAll");
+		List<AbilityDTO> DTOAll = new ArrayList<AbilityDTO>();
+		for (Ability a : all) {
+			DTOAll.add(mapToDTO(a));
+		}
 		mockRequest.accept(MediaType.APPLICATION_JSON);
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
-		ResultMatcher matchContent = MockMvcResultMatchers.content().json(this.jsonifier.writeValueAsString(all));
+		ResultMatcher matchContent = MockMvcResultMatchers.content().json(this.jsonifier.writeValueAsString(DTOAll));
 		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	
@@ -83,7 +93,7 @@ public class AbilityControllerIntegrationTest {
 				"/ability/findName/evade");
 		mockRequest.accept(MediaType.APPLICATION_JSON);
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
-		ResultMatcher matchContent = MockMvcResultMatchers.content().json(this.jsonifier.writeValueAsString(evade));
+		ResultMatcher matchContent = MockMvcResultMatchers.content().json(this.jsonifier.writeValueAsString(mapToDTO(evade)));
 		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	
@@ -93,7 +103,7 @@ public class AbilityControllerIntegrationTest {
 				"/ability/findID/4");
 		mockRequest.accept(MediaType.APPLICATION_JSON);
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
-		ResultMatcher matchContent = MockMvcResultMatchers.content().json(this.jsonifier.writeValueAsString(evade));
+		ResultMatcher matchContent = MockMvcResultMatchers.content().json(this.jsonifier.writeValueAsString(mapToDTO(evade)));
 		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	
@@ -106,7 +116,7 @@ public class AbilityControllerIntegrationTest {
 		mockRequest.accept(MediaType.APPLICATION_JSON);
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isCreated();
 		ResultMatcher matchContent = MockMvcResultMatchers.content()
-				.json(this.jsonifier.writeValueAsString(test));
+				.json(this.jsonifier.writeValueAsString(mapToDTO(test)));
 		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	repo.delete(test);
 	}
@@ -119,7 +129,7 @@ public class AbilityControllerIntegrationTest {
 		mockRequest.accept(MediaType.APPLICATION_JSON);
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
 		ResultMatcher matchContent = MockMvcResultMatchers.content()
-				.json(this.jsonifier.writeValueAsString(updated));
+				.json(this.jsonifier.writeValueAsString(mapToDTO(updated)));
 		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	

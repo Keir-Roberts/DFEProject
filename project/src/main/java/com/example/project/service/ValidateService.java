@@ -10,24 +10,18 @@ import com.example.project.exceptions.BuildPointException;
 import com.example.project.exceptions.NoAbilityException;
 import com.example.project.exceptions.NoTypeException;
 import com.example.project.exceptions.existingAbilityException;
+import com.example.project.repo.monsterRepo;
 
 @Service
 public class ValidateService {
-	public Monster convertStrToEnum(Monster monster) throws NoTypeException {
-		Type type = null;
-		try {
-			type = Type.strType(monster.getType());
-		} catch (NoTypeException t) {
-			throw new NoTypeException("Cannot find a type called " + monster.getType());
-		}
-		monster.setTypeEnum(type);
-		return monster;
+	
+	private monsterRepo repo;
+	
+	public ValidateService(monsterRepo repo) {
+		this.repo = repo;
 	}
 
-	public Monster convertEnumToStr(Monster monster) {
-		monster.setType(monster.getTypeEnum().getType());
-		return monster;
-	}
+
 
 	public Boolean BPCheck(Monster monster) throws BuildPointException {
 		int bp = bpUsed(monster);
@@ -73,13 +67,13 @@ public class ValidateService {
 			throw new BuildPointException("This monster has " + bpLeft(mon) + " 'build points' remaining, and "
 					+ SkillPoints.ABILITYCOST.getPoints() + " 'build points' are required to add a new Ability.");
 		}
-		if (mon.getAbilities().contains(ability)) {
+		if (mon.trueGetAbilities().contains(ability)) {
 			throw new existingAbilityException(mon.getName() + " has already got ability " + ability.getName());
 		}
 	}
 
 	public void validAbilityRemove(Monster mon, Ability ability) throws Exception {
-		if (!(mon.getAbilities().contains(ability))) {
+		if (!(mon.trueGetAbilities().contains(ability))) {
 			throw new NoAbilityException("This monster does not have " + ability.getName());
 		}
 		if (mon.getTypeEnum().getInnate() == ability.getId()) {
