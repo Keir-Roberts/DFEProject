@@ -137,15 +137,15 @@ public class monsterControllerIntegerationTest {
 
 	@Test
 	public void testCompare() throws Exception {
-		MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.GET, "/mon/compare/1/2");
+		MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.GET, "/mon/compare/2/4");
 		mockRequest.accept(MediaType.TEXT_PLAIN);
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
-		ResultMatcher matchContent = MockMvcResultMatchers.content().string("Comparing test1 and test2.\n"
-				+ " Type: \n" + "      test1's type is Fae and test2's type is Undead.\n" + "\n" + " Attack: \n"
-				+ "      They both have the same attack score of 7\n" + "\n" + " Health: \n"
+		ResultMatcher matchContent = MockMvcResultMatchers.content().string("Comparing test2 and test4.\n"
+				+ " Type: \n" + "      test2's type is Undead and test4's type is Beast.\n" + "\n" + " Attack: \n"
+				+ "      They both have the same attack score of 4\n" + "\n" + " Health: \n"
 				+ "      They both have the same health score of 7\n" + "\n" + " Abilities \n"
-				+ "      test1's abilities are: [Ability [id = 4, name = evade, description = 25% chance to avoid all damage]]\n"
-				+ "      test2's abilities are: [Ability [id = 4, name = evade, description = 25% chance to avoid all damage], Ability [id = 8, name = revive, description = once after going to <1 health, revert back to 1 health]]");
+				+ "      test2's abilities are: [Ability [id = 4, name = evade, description = 25% chance to avoid all damage], Ability [id = 8, name = revive, description = once after going to <1 health, revert back to 1 health]]\n"
+				+ "      test4's abilities are: [Ability [id = 6, name = momentum, description = gain 1 bonus damage after each attack], Ability [id = 8, name = revive, description = once after going to <1 health, revert back to 1 health]]");
 		this.mock.perform(mockRequest).andExpect(matchStatus).andExpect(matchContent);
 	}
 	
@@ -205,7 +205,7 @@ public class monsterControllerIntegerationTest {
 	
 	@Test
 	public void testRemoveAbility() throws Exception {
-		MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.DELETE, "/mon/removeAbility/2/evade");
+		MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.request(HttpMethod.PUT, "/mon/removeAbility/2/evade");
 		mockRequest.accept(MediaType.APPLICATION_JSON);
 		ResultMatcher matchStatus = MockMvcResultMatchers.status().isOk();
 		ResultMatcher matchContent = MockMvcResultMatchers.content()

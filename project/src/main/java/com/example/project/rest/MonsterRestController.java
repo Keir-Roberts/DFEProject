@@ -90,7 +90,7 @@ public class MonsterRestController {
 		return this.service.mapToDTO(service.addMonAbility(id, name));
 	}
 	
-	@DeleteMapping("/mon/removeAbility/{id}/{name}")
+	@PutMapping("/mon/removeAbility/{id}/{name}")
 	public MonsterDTO deleteMA(@PathVariable("id") long id, @PathVariable("name") String name) throws Exception {
 		return this.service.mapToDTO(service.removeMonAbility(id, name));
 	}

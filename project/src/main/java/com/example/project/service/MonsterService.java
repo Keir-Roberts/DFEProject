@@ -200,7 +200,7 @@ public class MonsterService {
 			health = n2 + " has the higher health of " + m2.getHealth() + " which is " + ((-1) * (defDif))
 					+ " points larger than " + n1 + "'s health of " + m1.getHealth() + ".";
 		}
-		int attDif = m1.getHealth() - m2.getHealth();
+		int attDif = m1.getAttack() - m2.getAttack();
 		String attack;
 		if (attDif > 0) {
 			attack = n1 + " has the higher attack of " + m1.getAttack() + " which is " + attDif + " points larger than "
@@ -238,6 +238,8 @@ public class MonsterService {
 	public String deleteMon(long id) throws Exception {
 		Monster out = readID(id);
 		String name = out.getName();
+		List<Ability> abi = new ArrayList<Ability>();
+		out.setAbilities(abi);
 		repo.delete(readID(id));
 		return name + " has been deleted";
 	}
